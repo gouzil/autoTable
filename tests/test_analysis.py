@@ -6,8 +6,7 @@ from autotable.processor.analysis import analysis_table, analysis_title
 
 start_str: str = "<!--task start bot-->"
 end_str: str = "<!--task end bot-->"
-table = \
-f"""
+table = f"""
 {start_str}
 |  序号  |  文件位置  |  认领人  |  PR  |
 | :---: | :---: | :---: | :---: |
@@ -24,9 +23,8 @@ def test_analysis_title():
 
     assert analysis_title(title) == "【Cleanup No.】"
 
+
 def test_analysis_table():
     "解析是否为表格"
-    res = analysis_table(table, start_str,end_str)
+    res = analysis_table(table, start_str, end_str)
     assert isinstance(res, Table)
-    breakpoint()
-

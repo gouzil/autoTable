@@ -13,7 +13,7 @@ class Fetcher:
 
     @classmethod
     def set_github(cls, token: str) -> None:
-        Fetcher.gh = Github(auth=Auth.Token(token), per_page=100) # 最大直接设置到100最大值
+        Fetcher.gh = Github(auth=Auth.Token(token), per_page=100)  # 最大直接设置到100最大值
 
     @classmethod
     def get_github(cls) -> Github:
@@ -24,13 +24,12 @@ class Fetcher:
         cls.repo = cls.gh.get_repo(repo)
 
     @classmethod
-    def get_issue(cls, issues_id:int) -> Issue:
+    def get_issue(cls, issues_id: int) -> Issue:
         return cls.repo.get_issue(issues_id)
 
     @classmethod
-    def get_pr_list(cls, repo: str) -> PaginatedList[PullRequest]:
+    def get_pr_list(cls, repo: str | None = None) -> PaginatedList[PullRequest]:
         repo_: Repository = cls.repo
-        if repo:
+        if repo is not None:
             repo_ = cls.gh.get_repo(repo)
         return repo_.get_pulls()
-

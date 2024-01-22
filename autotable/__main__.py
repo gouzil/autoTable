@@ -14,7 +14,8 @@ from autotable.api.issues import get_issues
 from autotable.api.prs import get_pr_list
 from autotable.processor.analysis import analysis_table, analysis_title
 from autotable.processor.file import replace_table, save_file, to_markdown
-from autotable.processor.github_prs import update_table
+from autotable.processor.github_issue import update_issue_table
+from autotable.processor.github_prs import update_pr_table
 from autotable.utils.fetcher import Fetcher
 
 if TYPE_CHECKING:
@@ -42,6 +43,8 @@ def issue_update(
 ):
     # 初始化日志
     init_logger(log_level)
+    Fetcher.set_github(token)
+    Fetcher.set_repo(repo)
 
     # 获取issue内容
     issue_title, issue_content, issue_create_time, issue_comments = get_issues(issues_id)
@@ -54,7 +57,10 @@ def issue_update(
     # 获取pr列表, (这里标题最后一位为结束字符)
     # TODO(gouzil): 这里需要去重
     pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_name[:-1])
-    doc_table = update_table(doc_table, title_name, pr_data)
+    doc_table = update_pr_table(doc_table, title_name, pr_data)
+
+    # 评论更新
+    doc_table = update_issue_table(doc_table, issue_comments)
 
     # 转换ast到md
     md = to_markdown(doc_table)
@@ -63,7 +69,8 @@ def issue_update(
     # print(md)
     # print(title_name)
 
-    issue_title = "# [Cleanup] `random_seed` -> `paddle.seed` 问题汇总"
+    # 添加统计
+
     save_file(md, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
 
 
