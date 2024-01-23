@@ -149,7 +149,10 @@ def pr_match_status(pr_state: PrType, pr_reviews: PaginatedList[PullRequestRevie
     pr_reviews_count = 0  # 如果有review, 且没有标记🟡
     for review in pr_reviews:
         pr_reviews_count += 1
-        review_indexs_str: str = analysis_review(review.body)
+        review_indexs_str: str | None = analysis_review(review.body)
+        if review_indexs_str is None:
+            continue
+        assert isinstance(review_indexs_str, str)
         review_indexs: list[str] = [str(x) for x in titleBase(review_indexs_str).distribution_parser().mate()]
         # 如果表格编号在 review 里则标记🟡
         if table_content[1:] in review_indexs:

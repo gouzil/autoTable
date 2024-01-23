@@ -50,13 +50,13 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
             people_names.extend(
                 [TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_claim_people)]
             )
-            table_people_names = ""
+            table_people_names = table_claim_people
             if len(people_names) == 1:
                 table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
             else:
                 for people in people_names:
                     # 这里全部以 pr 状态为主
-                    if people.github_id not in table_claim_people:
+                    if people.github_id not in table_people_names:
                         table_people_names += f"{people.status.value}@{people.github_id}</br>"
 
             table.children[table_index].children[-2].children[0].content = table_people_names

@@ -34,7 +34,7 @@ def analysis_title(content: str) -> str:
     return content[: content.find(title_end)]
 
 
-def analysis_review(content: str) -> str:
+def analysis_review(content: str) -> str | None:
     """
     解析 review 中对 bot 的操作
 
@@ -43,6 +43,9 @@ def analysis_review(content: str) -> str:
     """
     bot_start = '<!--bot_next="'
     bot_end = '"-->'
+
+    if bot_start not in content:
+        return None
 
     content = content[content.find(bot_start) + len(bot_start) :]
     return content[: content.find(bot_end)]
