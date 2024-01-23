@@ -11,12 +11,6 @@ class TablePr:
         self.status = status
         self.pr_num = pr_num
 
-    def __eq__(self, __value: TablePr) -> bool:
-        return self.pr_num == __value.pr_num
-
-    def __hash__(self) -> int:
-        return hash(self.pr_num)
-
 
 class TablePeople:
     status: StatusType
@@ -27,7 +21,4 @@ class TablePeople:
         self.github_id = github_id
 
     def __eq__(self, __value: TablePeople) -> bool:
-        return self.github_id == __value.github_id
-
-    def __hash__(self) -> int:
-        return hash(self.github_id)
+        return self.github_id == __value.github_id and self.status == __value.status

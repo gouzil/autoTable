@@ -107,11 +107,11 @@ def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[Pull
             table_claim_people: str = table.children[table_index].children[-2].children[0].content
             # 处理人名
             # 第一位是@位, 第二位是状态位
-            people_names: list[TablePeople] = [TablePeople(pr_state.match_pr_table(), pr.user.login)]
+            people_names: list[TablePeople] = [TablePeople(status, pr.user.login)]
             people_names.extend(
                 [TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_claim_people)]
             )
-            people_names = list(set(people_names))
+            people_names = TablePeople_list_repeat(people_names)
             table_people_names = ""
             if len(people_names) == 1:
                 table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
@@ -164,3 +164,26 @@ def pr_match_status(pr_state: PrType, pr_reviews: PaginatedList[PullRequestRevie
         return StatusType.PENDING_MERGE
 
     return res_type
+
+
+# TablePeople 去重
+def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePeople]:
+    res: list[TablePeople] = []
+    for people in TablePeople_list:
+        write = True
+        for res_index, res_data in enumerate(res):
+            if people.github_id == res_data.github_id and people.status == res_data.status:
+                write = False
+                break
+            if people.github_id != res_data.github_id:
+                continue
+            # 取较大的那个状态更新
+            if res_data.status.compare(people.status):
+                write = False
+            else:
+                res[res_index].status = people.status
+                write = False
+        if write:
+            res.append(people)
+
+    return res
