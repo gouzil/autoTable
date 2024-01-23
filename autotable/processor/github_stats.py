@@ -22,9 +22,10 @@ def update_stats_table(stats_table: Table, doc_table: Table) -> Table:
         if doc_index.children[0].children[0].content[0] == "~":
             continue
         status = StatusType(doc_index.children[0].children[0].content[0])
-        if status in status_stats.items():
+        if status in status_stats:
+            # 通过下标找到对应的值位置
             count: str = stats_table.children[0].children[status_stats[status]].children[0].content
             assert count.isdigit()
-            stats_table.children[0].children[status_stats[status]].children[0].content = int(count) + 1
+            stats_table.children[0].children[status_stats[status]].children[0].content = str(int(count) + 1)
 
     return stats_table

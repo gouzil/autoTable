@@ -77,7 +77,7 @@ def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[Pull
             status: StatusType = pr_match_status(pr_state, pr_reviews, table_content)
 
             # 设置序号状态
-            table.children[table_index].children[0].children[0].content = f"{status}{index}"
+            table.children[table_index].children[0].children[0].content = f"{status.value}{index}"
 
             # 更新 pr 号
             # 倒数第一列为 pr 号列

@@ -23,4 +23,4 @@ def get_pr_list(start_time: datetime, start_title: str) -> PaginatedList[PullReq
             res.append(i)
 
     # 逆序 pr 号小的在前
-    return res[:-1]
+    return res[::-1]
