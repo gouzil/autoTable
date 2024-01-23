@@ -16,6 +16,7 @@ from autotable.processor.analysis import analysis_table, analysis_title
 from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
+from autotable.processor.github_stats import update_stats_table
 from autotable.utils.fetcher import Fetcher
 
 if TYPE_CHECKING:
@@ -55,7 +56,6 @@ def issue_update(
 
     # 修改表格内容
     # 获取pr列表, (这里标题最后一位为结束字符)
-    # TODO(gouzil): 这里需要去重
     pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_name[:-1])
     doc_table = update_pr_table(doc_table, title_name, pr_data)
 
@@ -63,14 +63,20 @@ def issue_update(
     doc_table = update_issue_table(doc_table, issue_comments)
 
     # 转换ast到md
-    md = to_markdown(doc_table)
+    doc_md = to_markdown(doc_table)
     # 替换原数据表格
-    md = replace_table(issue_content, start_str, end_str, md)
-    # print(md)
-    # print(title_name)
+    doc_md = replace_table(issue_content, start_str, end_str, doc_md)
 
     # 添加统计
+    # 解析数据统计表格
+    stats_start_str = "<!--stats start bot-->"
+    stats_end_str = "<!--stats end bot-->"
+    doc_stats_table = analysis_table(issue_content, stats_start_str, stats_end_str)
+    stats_table = update_stats_table(doc_stats_table, doc_table)
+    stats_md = to_markdown(stats_table)
+    md = replace_table(doc_md, stats_start_str, stats_end_str, stats_md)
 
+    # 保存倒出
     save_file(md, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
 
 
