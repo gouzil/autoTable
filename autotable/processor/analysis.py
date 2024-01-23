@@ -58,5 +58,5 @@ def analysis_table_more_people(content: str) -> list[str]:
     if len(content) == 0:
         return []
     if "</br>" in content:
-        return content.split("</br>")
+        return content.split("</br>")[:-1]
     return [content]

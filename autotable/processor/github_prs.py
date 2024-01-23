@@ -85,19 +85,18 @@ def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[Pull
                 table.children[table_index].children[-1].children.append(RawText(""))
             table_pr_index: str = table.children[table_index].children[-1].children[0].content
             # 这里直接处理成 pr 号处理
-            pr_table_list: list[TablePr] = [TablePr(pr_state.match_pr_table(), pr.number)]
-            pr_table_list.extend(
-                [TablePr(StatusType(x[0]), int(x[1:])) for x in analysis_table_more_people(table_pr_index)]
-            )
+            pr_table_list: list[int] = [pr.number]
+            pr_table_list.extend([int(x[1:]) for x in analysis_table_more_people(table_pr_index)])
+            pr_table_list = list(set(pr_table_list))
             table_pr_num = ""
             if len(pr_table_list) == 1:
-                table_pr_num = f"#{pr_table_list[0].pr_num}"
+                table_pr_num = f"#{pr_table_list[0]}"
             else:
                 for pr_table in pr_table_list:
                     # 不生成关闭的pr
                     if pr_table in close_number:
                         continue
-                    table_pr_num += f"{pr_table.status}#{pr_table.pr_num}</br>"
+                    table_pr_num += f"#{pr_table}</br>"
 
             table.children[table_index].children[-1].children[0].content = table_pr_num
 
@@ -112,6 +111,7 @@ def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[Pull
             people_names.extend(
                 [TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_claim_people)]
             )
+            people_names = list(set(people_names))
             table_people_names = ""
             if len(people_names) == 1:
                 table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"

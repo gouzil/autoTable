@@ -16,6 +16,7 @@ def update_stats_table(stats_table: Table, doc_table: Table) -> Table:
         if status not in status_type_list:
             continue
         status_stats[StatusType(status)] = index
+        stats_table.children[0].children[index].children[0].content = "0"
 
     # 统计任务表中的数据
     for doc_index in doc_table.children:
