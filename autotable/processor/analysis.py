@@ -4,8 +4,6 @@ from loguru import logger
 from mistletoe import Document, ast_renderer
 from mistletoe.block_token import Table
 
-from autotable.autotable_type.autotable_type import StatusType
-
 
 # 解析markdown表格
 def analysis_table(content: str, start_str: str, end_str: str) -> Table:
