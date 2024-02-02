@@ -76,6 +76,7 @@ def issue_update(
     stats_md = to_markdown(stats_table)
     md = replace_table(doc_md, stats_start_str, stats_end_str, stats_md)
 
+    # TODO(gouzil): 加个diff
     # 保存倒出
     save_file(md, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
 

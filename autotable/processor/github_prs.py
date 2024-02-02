@@ -9,7 +9,7 @@ from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import titleBase
-from autotable.storage_model.table import TablePeople, TablePr
+from autotable.storage_model.table import TablePeople
 from autotable.utils.strtool import str_translate
 
 if TYPE_CHECKING:

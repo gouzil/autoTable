@@ -32,4 +32,4 @@ class Fetcher:
         repo_: Repository = cls.repo
         if repo is not None:
             repo_ = cls.gh.get_repo(repo)
-        return repo_.get_pulls()
+        return repo_.get_pulls(state="all")
