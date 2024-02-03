@@ -24,9 +24,9 @@ def analysis_table(content: str, start_str: str, end_str: str) -> Table:
 # 解析任务列表markdown中任务的标题 暂停音乐
 def analysis_title(content: str) -> str:
     """
-    解析pr开头标题
+    解析pr开头标题, 这里返回的应该是正则表达式
 
-    标题的最后一位是结束符
+    <!--title_name=""-->
     """
     title_start = '<!--title_name="'
     title_end = '"-->'
@@ -38,7 +38,6 @@ def analysis_review(content: str) -> str | None:
     """
     解析 review 中对 bot 的操作
 
-    demo:
     <!--bot_next=""-->
     """
     bot_start = '<!--bot_next="'
@@ -49,6 +48,21 @@ def analysis_review(content: str) -> str | None:
 
     content = content[content.find(bot_start) + len(bot_start) :]
     return content[: content.find(bot_end)]
+
+
+def analysis_enter(content: str) -> str:
+    """
+    报名解析
+
+    <!--enter=""-->
+    """
+    enter_start = '<!--enter="'
+    enter_end = '"-->'
+    if enter_start not in content:
+        raise RuntimeError("not find enter")
+
+    content = content[content.find(enter_start) + len(enter_start) :]
+    return content[: content.find(enter_end)]
 
 
 def analysis_table_more_people(content: str) -> list[str]:

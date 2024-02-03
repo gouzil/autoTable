@@ -12,11 +12,11 @@ from rich.style import Style
 
 from autotable.api.issues import get_issues
 from autotable.api.prs import get_pr_list
-from autotable.processor.analysis import analysis_table, analysis_title
+from autotable.processor.analysis import analysis_enter, analysis_table, analysis_title
 from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
-from autotable.processor.github_stats import update_stats_table
+from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
 from autotable.utils.fetcher import Fetcher
 
 if TYPE_CHECKING:
@@ -38,8 +38,6 @@ def issue_update(
     repo: str,
     issues_id: int,
     token: str,
-    start_str: str = "<!--task start bot-->",
-    end_str: str = "<!--task end bot-->",
     log_level: str = "INFO",
 ):
     # 初始化日志
@@ -49,32 +47,54 @@ def issue_update(
 
     # 获取issue内容
     issue_title, issue_content, issue_create_time, issue_comments = get_issues(issues_id)
-    # 解析表格
-    doc_table = analysis_table(issue_content, start_str, end_str)
-    # 解析任务开头标题
-    title_name = analysis_title(issue_content)
 
-    # 修改表格内容
-    # 获取pr列表, (这里标题最后一位为结束字符)
-    pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_name[:-1])
-    doc_table = update_pr_table(doc_table, title_name, pr_data)
+    # 解析任务开头标题 (这是一个正则表达式)
+    title_re = analysis_title(issue_content)
+    # 解析报名正则
+    enter_re = analysis_enter(issue_content)
+    # 获取pr列表
+    pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_re)
 
-    # 评论更新
-    doc_table = update_issue_table(doc_table, issue_comments)
+    # 大致思路为表格序号匹配标题序号
 
-    # 转换ast到md
-    doc_md = to_markdown(doc_table)
-    # 替换原数据表格
-    doc_md = replace_table(issue_content, start_str, end_str, doc_md)
+    for trace_index in range(ord("A"), ord("Z") + 1):
+        start_str: str = f'<!--table_start="{chr(trace_index)}"-->'
+        end_str: str = f'<!--table_end="{chr(trace_index)}"-->'
+
+        # 如果这个表格不存在就跳过更新
+        if start_str not in issue_content:
+            continue
+
+        # 解析表格
+        doc_table = analysis_table(issue_content, start_str, end_str)
+
+        # 修改表格内容
+        doc_table = update_pr_table(doc_table, title_re, pr_data)
+
+        # 评论更新
+        doc_table = update_issue_table(doc_table, issue_comments, enter_re)
+
+        # 更新统计数据
+        update_stats_data(doc_table)
+
+        # 转换ast到md
+        doc_md = to_markdown(doc_table)
+        # 替换原数据表格
+        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
 
     # 添加统计
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
     doc_stats_table = analysis_table(issue_content, stats_start_str, stats_end_str)
-    stats_table = update_stats_table(doc_stats_table, doc_table)
+    stats_table = update_stats_table(doc_stats_table)
     stats_md = to_markdown(stats_table)
-    md = replace_table(doc_md, stats_start_str, stats_end_str, stats_md)
+    issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
+
+    # 替换贡献者名单
+    contributors_start_str = "<!--contributors start bot-->"
+    contributors_end_str = "<!--contributors end bot-->"
+    md = replace_table(issue_content, contributors_start_str, contributors_end_str, update_stats_people())
 
     # TODO(gouzil): 加个diff
     # 保存倒出
