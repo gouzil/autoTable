@@ -53,7 +53,7 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
                 for people in people_names:
                     # 这里全部以 pr 状态为主
                     if people.github_id not in table_people_names:
-                        table_people_names += f"{people.status.value}@{people.github_id}</br>"
+                        table_people_names += f"{people.status.value}@{people.github_id}<br/>"
 
             table_row.children[-2].children[0].content = table_people_names
 

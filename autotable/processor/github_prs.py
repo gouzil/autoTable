@@ -62,6 +62,8 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             # 如果与序号不匹配跳过
             if index[1:] not in pr_index_list:
                 continue
+
+            # 只有 reviews 的状态是 APPROVED 才是需要判断的
             pr_reviews: list[PullRequestReview] = []
             for x in pr.get_reviews():
                 if x.state == "APPROVED":
@@ -120,7 +122,7 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
 
 # 理想状态
 """
-| 🔵1 | test_varname_inplace_ipu.py | 🚧@gouzil</br>🚧@gouzil | 🟢#123</br>🚧#456 |
+| 🔵1 | test_varname_inplace_ipu.py | 🚧@gouzil<br/>🚧@gouzil | 🟢#123<br/>🚧#456 |
 """
 
 
