@@ -16,7 +16,7 @@ class titleBase:
             return False
         if (
             self.title_content[continuous_index - 1 : continuous_index].isdigit()
-            and self.title_content[continuous_index : continuous_index + 1].isdigit()
+            and self.title_content[continuous_index + 1 : continuous_index + 2].isdigit()
         ):
             return False
 
