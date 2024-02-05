@@ -12,7 +12,7 @@ jobs:
     name: CodeStyle Check
     strategy:
       matrix:
-        python-version: [3.12, 3.11, 3.10]
+        python-version: ["3.12", "3.11", "3.10"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
