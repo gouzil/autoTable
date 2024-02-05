@@ -26,7 +26,7 @@ def to_markdown(doc: Table) -> str:
 
 def replace_table(content: str, start_str: str, end_str: str, new_table: str) -> str:
     """
-    替换表格
+    替换表格, 后来也被用于替换一些文本信息
     """
     return content.replace(
         # 起始位置+起始字符串长度+换行符 : 结束位置

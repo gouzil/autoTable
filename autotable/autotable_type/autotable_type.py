@@ -11,7 +11,7 @@ class StatusType(Enum):
     NEXT_STAGE = "🟡"  # 当前阶段不需要人力继续跟进, 下阶段推进
     COMPLETED = "✅"  # 迁移完成
 
-    def compare(self, other: StatusType) -> bool:
+    def __gt__(self, other: StatusType) -> bool:
         # self > other
         match (self, other):
             case (

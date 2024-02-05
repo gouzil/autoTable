@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
+from loguru import logger
 from mistletoe.block_token import Table
 from mistletoe.span_token import RawText
 
@@ -10,7 +12,6 @@ from autotable.autotable_type.github_type import PrType, get_pr_type
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import titleBase
 from autotable.storage_model.table import TablePeople
-from autotable.utils.strtool import str_translate
 
 if TYPE_CHECKING:
     from github.PaginatedList import PaginatedList
@@ -30,65 +31,59 @@ table.children:
 """
 
 
-def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[PullRequest]) -> Table:
-    # 中英符号转换
-    title_start = str_translate(title_identifier[:-1])
-    title_end = str_translate(title_identifier[-1])
+def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]) -> Table:
+    # 记录已经关闭了的号码
+    close_number: set[int] = set()
 
-    # 获取第一个编号, 这里取第二位是因为第一位是状态位
-    # 防止第一个任务是删除任务: ~🔵1~
-    if table.children[0].children[0].children[0].content[0] == "~":
-        table_start_index = int(table.children[0].children[0].children[0].content[2:-1])
-    else:
-        table_start_index = int(table.children[0].children[0].children[0].content[1:])
-
-    # 记录pr号码
-    # pr.number
-    close_number: list[int] = []
-
-    for pr in prs:
-        # 转换为自己的类型
-        pr_state: PrType = get_pr_type(pr)
-        if pr_state is PrType.CLOSED:
-            close_number.append(pr.number)
+    for table_row in table.children:
+        index: str = table_row.children[0].children[0].content
+        # 跳过已经删除的行
+        if "~" in index:
             continue
 
-        # 中英符号转换
-        title = str_translate(pr.title)
-        # 截取标题的有用信息
-        pr_title = title[title.find(title_start) + len(title_start) : title.find(title_end)]
-        # 获取编号
-        pr_index: list[int] = titleBase(pr_title).distribution_parser().mate()
-        # 获取reviews
-        pr_reviews: PaginatedList[PullRequestReview] = pr.get_reviews()
-
-        for index in pr_index:
-            # pr标题中的编号 - 表格开头的第一个编号 = 当前数据的索引
-            table_index = index - table_start_index
-            table_content: str = table.children[table_index].children[0].children[0].content
-            # 题号删除不更新
-            if "~" in table_content:
+        # 查找pr列表
+        for pr in prs:
+            # 转换为自己的类型
+            pr_state: PrType = get_pr_type(pr)
+            # 跳过已经关闭了的pr
+            if pr_state is PrType.CLOSED:
+                close_number.add(pr.number)
                 continue
 
-            # 检查值是否一致 (一致代表顺序, 不重复, 且中间没有跳号)
-            assert int(table_content[1:]) == index
+            pr_indexs_re = re.match(title_re, pr.title)
 
-            # 确认状态
-            status: StatusType = pr_match_status(pr_state, pr_reviews, table_content)
+            if pr_indexs_re is None:
+                logger.error(f"{pr.number} Parsing title error")
+                continue
+
+            pr_indexs_text = pr_indexs_re.group("task_id")
+            pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
+
+            # 如果与序号不匹配跳过
+            if index[1:] not in pr_index_list:
+                continue
+
+            # 只有 reviews 的状态是 APPROVED 才是需要判断的
+            pr_reviews: list[PullRequestReview] = []
+            for x in pr.get_reviews():
+                if x.state == "APPROVED":
+                    pr_reviews.append(x)
+
+            # 确认状态, 当前行的状态, 第一位永远为状态位
+            status: StatusType = pr_match_status(pr_state, pr_reviews, index)
 
             # 设置序号状态
-            table.children[table_index].children[0].children[0].content = f"{status.value}{index}"
+            table_row.children[0].children[0].content = f"{status.value}{index[1:]}"
 
-            # 更新 pr 号
-            # 倒数第一列为 pr 号列
-            if len(table.children[table_index].children[-1].children) == 0:
-                table.children[table_index].children[-1].children.append(RawText(""))
-            table_pr_index: str = table.children[table_index].children[-1].children[0].content
-            # 这里直接处理成 pr 号处理
+            # 更新 pr 号, 倒数第一列为 pr 号列
+            if len(table_row.children[-1].children) == 0:
+                table_row.children[-1].children.append(RawText(""))
             pr_table_list: list[int] = [pr.number]
-            pr_table_list.extend([int(x[1:]) for x in analysis_table_more_people(table_pr_index)])
+            pr_table_list.extend(
+                [int(x[1:]) for x in analysis_table_more_people(table_row.children[-1].children[0].content)]
+            )
             pr_table_list = list(set(pr_table_list))
-            table_pr_num = ""
+            table_pr_num: str = ""
             if len(pr_table_list) == 1:
                 table_pr_num = f"#{pr_table_list[0]}"
             else:
@@ -96,41 +91,42 @@ def update_pr_table(table: Table, title_identifier: str, prs: PaginatedList[Pull
                     # 不生成关闭的pr
                     if pr_table in close_number:
                         continue
-                    table_pr_num += f"#{pr_table}</br>"
+                    table_pr_num += f"#{pr_table}<br/>"
 
-            table.children[table_index].children[-1].children[0].content = table_pr_num
+            table_row.children[-1].children[0].content = table_pr_num
 
-            # 更新认领人状态
-            # 倒数第二列为认领人列
-            if len(table.children[table_index].children[-2].children) == 0:
-                table.children[table_index].children[-2].children.append(RawText(""))
-            table_claim_people: str = table.children[table_index].children[-2].children[0].content
+            # 更新认领人
+            if len(table_row.children[-2].children) == 0:
+                table_row.children[-2].children.append(RawText(""))
             # 处理人名
             # 第一位是@位, 第二位是状态位
             people_names: list[TablePeople] = [TablePeople(status, pr.user.login)]
             people_names.extend(
-                [TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_claim_people)]
+                [
+                    TablePeople(StatusType(x[0]), x[2:])
+                    for x in analysis_table_more_people(table_row.children[-2].children[0].content)
+                ]
             )
             people_names = TablePeople_list_repeat(people_names)
-            table_people_names = ""
+            table_people_names: str = ""
             if len(people_names) == 1:
                 table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
             else:
                 for people in people_names:
-                    table_people_names += f"{people.status.value}@{people.github_id}</br>"
+                    table_people_names += f"{people.status.value}@{people.github_id}<br/>"
 
-            table.children[table_index].children[-2].children[0].content = table_people_names
+            table_row.children[-2].children[0].content = table_people_names
 
     return table
 
 
 # 理想状态
 """
-| 🔵1 | test_varname_inplace_ipu.py | 🚧@gouzil</br>🚧@gouzil | 🟢#123</br>🚧#456 |
+| 🔵1 | test_varname_inplace_ipu.py | 🚧@gouzil<br/>🚧@gouzil | 🟢#123<br/>🚧#456 |
 """
 
 
-def pr_match_status(pr_state: PrType, pr_reviews: PaginatedList[PullRequestReview], table_content: str) -> StatusType:
+def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table_content: str) -> StatusType:
     """
     匹配pr类型到表格状态
 
@@ -142,7 +138,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: PaginatedList[PullRequestRevie
     pr_state_: StatusType = pr_state.match_pr_table()
     # pr_state_ > res_type
     # 🚧 > 🔵
-    if pr_state_.compare(res_type):
+    if pr_state_ > res_type:
         res_type = pr_state_
 
     # 截取reviews中的单独设置
@@ -166,7 +162,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: PaginatedList[PullRequestRevie
     return res_type
 
 
-# TablePeople 去重
+# TablePeople 去重, 这里会调整状态
 def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePeople]:
     res: list[TablePeople] = []
     for people in TablePeople_list:
@@ -178,7 +174,7 @@ def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePe
             if people.github_id != res_data.github_id:
                 continue
             # 取较大的那个状态更新
-            if res_data.status.compare(people.status):
+            if res_data.status > people.status:
                 write = False
             else:
                 res[res_index].status = people.status

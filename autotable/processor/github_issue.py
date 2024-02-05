@@ -12,53 +12,49 @@ from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.analysis import analysis_table_more_people
 from autotable.processor.github_title import titleBase
 from autotable.storage_model.table import TablePeople
-from autotable.utils.strtool import str_translate
 
 
-def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]) -> Table:
-    for issue in issue_comments:
-        if "报名" not in issue.body:
-            continue
+def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment], enter_re: str) -> Table:
+    for table_row in table.children:
+        index: str = table_row.children[0].children[0].content
 
-        issue_body = str_translate(issue.body)
-        m = re.search(r"\d", issue_body)
+        for issue in issue_comments:
+            if re.search(enter_re, issue.body) is None:
+                logger.info(f"skip {issue.url}")
+                continue
 
-        if not m:
-            logger.debug(f"{{{issue.body}}} parse error")
-            continue
+            enter_indexs = re.match(enter_re, issue.body)
+            if enter_indexs is None:
+                logger.error(f"Matching failed skip {issue.url}")
+                continue
 
-        # 获取第一个编号, 这里取第二位是因为第一位是状态位
-        # 防止第一个任务是删除任务: ~🔵1~
-        if table.children[0].children[0].children[0].content[0] == "~":
-            table_start_index = int(table.children[0].children[0].children[0].content[2:-1])
-        else:
-            table_start_index = int(table.children[0].children[0].children[0].content[1:])
+            # 如果标题不匹配跳过
+            enter_indexs_text = enter_indexs.group("task_id")
+            enter_indexs_list: list[str] = titleBase(enter_indexs_text).distribution_parser().mate()
+            if index[1:] not in enter_indexs_list:
+                continue
 
-        # issue 中报名的标题
-        issue_indexs = titleBase(issue_body[m.start() :]).distribution_parser().mate()
-        for index in issue_indexs:
-            # pr标题中的编号 - 表格开头的第一个编号 = 当前数据的索引
-            table_index = index - table_start_index
-            # 更新认领人状态
-            # 倒数第二列为认领人列
-            if len(table.children[table_index].children[-2].children) == 0:
-                table.children[table_index].children[-2].children.append(RawText(""))
-            table_claim_people: str = table.children[table_index].children[-2].children[0].content
+            # 更新认领人
+            if len(table_row.children[-2].children) == 0:
+                table_row.children[-2].children.append(RawText(""))
             # 处理人名
             # 第一位是@位, 第二位是状态位
             people_names: list[TablePeople] = [TablePeople(StatusType.CLAIMED, issue.user.login)]
             people_names.extend(
-                [TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_claim_people)]
+                [
+                    TablePeople(StatusType(x[0]), x[2:])
+                    for x in analysis_table_more_people(table_row.children[-2].children[0].content)
+                ]
             )
-            table_people_names = table_claim_people
+            table_people_names: str = table_row.children[-2].children[0].content
             if len(people_names) == 1:
                 table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
             else:
                 for people in people_names:
                     # 这里全部以 pr 状态为主
                     if people.github_id not in table_people_names:
-                        table_people_names += f"{people.status.value}@{people.github_id}</br>"
+                        table_people_names += f"{people.status.value}@{people.github_id}<br/>"
 
-            table.children[table_index].children[-2].children[0].content = table_people_names
+            table_row.children[-2].children[0].content = table_people_names
 
     return table

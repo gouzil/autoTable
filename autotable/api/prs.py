@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 
 from github.PaginatedList import PaginatedList
@@ -9,7 +10,7 @@ from loguru import logger
 from autotable.utils.fetcher import Fetcher
 
 
-def get_pr_list(start_time: datetime, start_title: str) -> PaginatedList[PullRequest]:
+def get_pr_list(start_time: datetime, title_re: str) -> PaginatedList[PullRequest]:
     """
     筛选出符合条件的pull request
     """
@@ -19,7 +20,8 @@ def get_pr_list(start_time: datetime, start_title: str) -> PaginatedList[PullReq
         if not i.created_at > start_time:
             logger.debug(f"end request pr number: {i.number}")
             break
-        if start_title in i.title:
+        # 如果正则匹配上了就会加入队列
+        if re.search(title_re, i.title):
             res.append(i)
 
     # 逆序 pr 号小的在前

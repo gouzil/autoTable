@@ -5,12 +5,12 @@ from autotable.autotable_type.autotable_type import StatusType
 
 def test_autotable_type_compare():
     # 🔵 < 🚧
-    assert not StatusType.PENDING.compare(StatusType.CLAIMED)
+    assert not StatusType.PENDING > StatusType.CLAIMED
     # 🔵 < ✅
-    assert not StatusType.PENDING.compare(StatusType.COMPLETED)
+    assert not StatusType.PENDING > StatusType.COMPLETED
     # 🟢 > 🚧
-    assert StatusType.PENDING_MERGE.compare(StatusType.CLAIMED)
+    assert StatusType.PENDING_MERGE > StatusType.CLAIMED
     # 🟡 < ✅
-    assert not StatusType.NEXT_STAGE.compare(StatusType.COMPLETED)
+    assert not StatusType.NEXT_STAGE > StatusType.COMPLETED
     # 🟡 > 🟢
-    assert StatusType.NEXT_STAGE.compare(StatusType.PENDING_MERGE)
+    assert StatusType.NEXT_STAGE > StatusType.PENDING_MERGE
