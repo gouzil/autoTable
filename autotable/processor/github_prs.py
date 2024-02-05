@@ -138,7 +138,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table
     pr_state_: StatusType = pr_state.match_pr_table()
     # pr_state_ > res_type
     # 🚧 > 🔵
-    if pr_state_.compare(res_type):
+    if pr_state_ > res_type:
         res_type = pr_state_
 
     # 截取reviews中的单独设置
@@ -174,7 +174,7 @@ def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePe
             if people.github_id != res_data.github_id:
                 continue
             # 取较大的那个状态更新
-            if res_data.status.compare(people.status):
+            if res_data.status > people.status:
                 write = False
             else:
                 res[res_index].status = people.status
