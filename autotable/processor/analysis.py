@@ -6,8 +6,8 @@ from mistletoe.block_token import Table
 
 
 # 解析markdown表格
-def analysis_table(content: str, start_str: str, end_str: str) -> Table:
-    """解析markdown 表格"""
+def analysis_table_content(content: str, start_str: str, end_str: str) -> Table:
+    """解析 markdown 表格内容"""
     # 切分一下表格, 后期可能需要调整多表策略
     # TODO(gouzi): 或许不应该在这里处理多表, 而是交给上层去处理
     content = content[content.find(start_str) + len(start_str) : content.find(end_str)]
@@ -77,3 +77,16 @@ def analysis_table_more_people(content: str) -> list[str]:
         else:
             return content.split("<br/>")
     return [content]
+
+
+def analysis_table_generator(issue_content: str):
+    """
+    表单迭代器, 用于判断表格是否存在, 并返回开始和结束字段
+    """
+    start_str: str = '<!--table_start="{}"-->'
+    end_str: str = '<!--table_end="{}"-->'
+    for trace_index in range(ord("A"), ord("Z") + 1):
+        # 如果这个表格不存在就跳过
+        if start_str.format(chr(trace_index)) not in issue_content:
+            continue
+        yield (start_str.format(chr(trace_index)), end_str.format(chr(trace_index)))

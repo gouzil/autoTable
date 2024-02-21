@@ -5,7 +5,8 @@ from mistletoe.block_token import Table
 from autotable.processor.analysis import (
     analysis_enter,
     analysis_review,
-    analysis_table,
+    analysis_table_content,
+    analysis_table_generator,
     analysis_table_more_people,
     analysis_title,
 )
@@ -17,7 +18,7 @@ def test_analysis_title():
     assert analysis_title(title) == r"\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"
 
 
-def test_analysis_table():
+def test_analysis_table_content():
     "解析是否为表格"
     start_str: str = '<!--table_start="A"-->'
     end_str: str = '<!--table_end="A"-->'
@@ -29,7 +30,7 @@ def test_analysis_table():
 | 🔵A-2 | test_cummax_op.py |   |  |
 {end_str}
 """
-    res = analysis_table(table, start_str, end_str)
+    res = analysis_table_content(table, start_str, end_str)
     assert isinstance(res, Table)
 
 
@@ -57,3 +58,20 @@ def test_analysis_table_more_people():
 
     res4 = analysis_table_more_people("@gouzil")
     assert res4 == ["@gouzil"]
+
+
+def test_analysis_table_iter():
+    issues_content = """
+<!--table_start="A"-->
+<!--table_end="A"-->
+<!--table_start="C"-->
+<!--table_end="C"-->
+<!--table_start="D"-->
+<!--table_end="D"-->
+"""
+    astab = analysis_table_generator(issues_content)
+    assert list(astab) == [
+        ('<!--table_start="A"-->', '<!--table_end="A"-->'),
+        ('<!--table_start="C"-->', '<!--table_end="C"-->'),
+        ('<!--table_start="D"-->', '<!--table_end="D"-->'),
+    ]

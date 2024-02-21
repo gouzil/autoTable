@@ -24,5 +24,6 @@ def get_pr_list(start_time: datetime, title_re: str) -> PaginatedList[PullReques
         if re.search(title_re, i.title):
             res.append(i)
 
+    logger.debug(f"pr list:{res[::-1]}")
     # 逆序 pr 号小的在前
     return res[::-1]
