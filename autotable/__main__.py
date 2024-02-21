@@ -12,7 +12,12 @@ from rich.style import Style
 
 from autotable.api.issues import get_issues
 from autotable.api.prs import get_pr_list
-from autotable.processor.analysis import analysis_enter, analysis_table, analysis_title
+from autotable.processor.analysis import (
+    analysis_enter,
+    analysis_table_content,
+    analysis_table_generator,
+    analysis_title,
+)
 from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
@@ -33,6 +38,17 @@ def init_logger(log_level: str):
     logger.add("./logs/autotable.log", rotation="5MB", encoding="utf-8", enqueue=True, retention="10d")
 
 
+def init(
+    repo: str,
+    token: str,
+    log_level: str = "INFO",
+):
+    # 初始化
+    init_logger(log_level)
+    Fetcher.set_github(token)
+    Fetcher.set_repo(repo)
+
+
 @app.command()
 def issue_update(
     repo: str,
@@ -40,11 +56,7 @@ def issue_update(
     token: str,
     log_level: str = "INFO",
 ):
-    # 初始化日志
-    init_logger(log_level)
-    Fetcher.set_github(token)
-    Fetcher.set_repo(repo)
-
+    init(repo, token, log_level)
     # 获取issue内容
     issue_title, issue_content, issue_create_time, issue_comments = get_issues(issues_id)
 
@@ -57,16 +69,9 @@ def issue_update(
 
     # 大致思路为表格序号匹配标题序号
 
-    for trace_index in range(ord("A"), ord("Z") + 1):
-        start_str: str = f'<!--table_start="{chr(trace_index)}"-->'
-        end_str: str = f'<!--table_end="{chr(trace_index)}"-->'
-
-        # 如果这个表格不存在就跳过更新
-        if start_str not in issue_content:
-            continue
-
+    for start_str, end_str in analysis_table_generator(issue_content):
         # 解析表格
-        doc_table = analysis_table(issue_content, start_str, end_str)
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
 
         # 修改表格内容
         doc_table = update_pr_table(doc_table, title_re, pr_data)
@@ -86,7 +91,7 @@ def issue_update(
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
-    doc_stats_table = analysis_table(issue_content, stats_start_str, stats_end_str)
+    doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
     stats_table = update_stats_table(doc_stats_table)
     stats_md = to_markdown(stats_table)
     issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
@@ -97,15 +102,37 @@ def issue_update(
     md = replace_table(issue_content, contributors_start_str, contributors_end_str, update_stats_people())
 
     # TODO(gouzil): 加个diff
-    # 保存倒出
+    # 保存导出
     save_file(md, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
 
 
 @app.command()
+def issue_update_stats(repo: str, issues_id: int, token: str, log_level: str = "INFO"):
+    init(repo, token, log_level)
+    # 获取issue内容
+    issue_title, issue_content, _, _ = get_issues(issues_id)
+    for start_str, end_str in analysis_table_generator(issue_content):
+        # 解析表格
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        # 更新统计数据
+        update_stats_data(doc_table, False)
+
+    # 添加统计
+    # 解析数据统计表格
+    stats_start_str = "<!--stats start bot-->"
+    stats_end_str = "<!--stats end bot-->"
+    doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
+    stats_table = update_stats_table(doc_stats_table)
+    stats_md = to_markdown(stats_table)
+    issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
+
+    # 保存导出
+    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+
+
+@app.command()
 def issue_backup(repo: str, issues_id: int, token: str, log_level: str = "INFO"):
-    init_logger(log_level)
-    Fetcher.set_github(token)
-    Fetcher.set_repo(repo)
+    init(repo, token, log_level)
     issues_title, issue_content, _, _ = get_issues(issues_id)
     save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issues_title + ".md", issues_title)
 

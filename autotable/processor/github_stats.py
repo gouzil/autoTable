@@ -7,12 +7,12 @@ from autotable.processor.analysis import analysis_table_more_people
 from autotable.storage_model.table import TablePeople, TableStatistics
 
 
-def update_stats_data(doc_table: Table):
+def update_stats_data(doc_table: Table, update_people: bool = True):
     for table_row in doc_table.children:
         stats: StatusType = StatusType(table_row.children[0].children[0].content[0])
         TableStatistics.status[stats] += 1
 
-        if stats == StatusType.COMPLETED:
+        if stats == StatusType.COMPLETED and update_people:
             people_names: list[TablePeople] = [
                 TablePeople(StatusType(x[0]), x[2:])
                 for x in analysis_table_more_people(table_row.children[-2].children[0].content)
