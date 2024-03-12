@@ -7,8 +7,15 @@
 
 ## 安装
 
+源码安装
+
 ```bash
 pdm install
+```
+仓库安装
+
+```bash
+pip install git+https://github.com/gouzil/autoTable
 ```
 
 ## 使用方式

@@ -18,6 +18,10 @@ license = { text = "MIT" }
 [project.scripts]
 autotable = "autotable.__main__:app"
 
+[tool.pdm.build]
+excludes = ["./**/.git"]
+includes = ["autotable"]
+
 [tool.pdm.scripts]
 test.cmd = "pytest ./tests --cov=autotable --cov-context=test"
 test.help = "Launch pytest"
