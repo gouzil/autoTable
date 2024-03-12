@@ -91,19 +91,23 @@ def issue_update(
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
-    doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
-    stats_table = update_stats_table(doc_stats_table)
-    stats_md = to_markdown(stats_table)
-    issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
+    if stats_end_str in issue_content:
+        doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
+        stats_table = update_stats_table(doc_stats_table)
+        stats_md = to_markdown(stats_table)
+        issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
 
     # 替换贡献者名单
     contributors_start_str = "<!--contributors start bot-->"
     contributors_end_str = "<!--contributors end bot-->"
-    md = replace_table(issue_content, contributors_start_str, contributors_end_str, update_stats_people())
+    if contributors_start_str in issue_content:
+        issue_content = replace_table(
+            issue_content, contributors_start_str, contributors_end_str, update_stats_people()
+        )
 
     # TODO(gouzil): 加个diff
     # 保存导出
-    save_file(md, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
 
 
 @app.command()

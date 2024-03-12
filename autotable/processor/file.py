@@ -28,8 +28,9 @@ def replace_table(content: str, start_str: str, end_str: str, new_table: str) ->
     """
     替换表格, 后来也被用于替换一些文本信息
     """
-    return content.replace(
-        # 起始位置+起始字符串长度+换行符 : 结束位置
-        content[content.find(start_str) + len(start_str) + 1 : content.find(end_str)],
-        new_table,
-    )
+    # 前半部分+起始字符串长度+换行符
+    first_half: str = content[: content.find(start_str) + len(start_str) + 1]
+    # 后半部分
+    second_half: str = content[content.find(end_str) :]
+    # 加新内容
+    return f"{first_half}{new_table}{second_half}"
