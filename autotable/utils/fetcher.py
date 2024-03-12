@@ -28,6 +28,10 @@ class Fetcher:
         return cls.repo.get_issue(issues_id)
 
     @classmethod
+    def set_issue(cls, issues_id: int, issue_content: str):
+        cls.repo.get_issue(issues_id).edit(body=issue_content)
+
+    @classmethod
     def get_pr_list(cls, repo: str | None = None) -> PaginatedList[PullRequest]:
         repo_: Repository = cls.repo
         if repo is not None:

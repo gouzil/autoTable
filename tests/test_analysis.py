@@ -36,7 +36,9 @@ def test_analysis_table_content():
 
 def test_analysis_enter():
     "解析贡献者"
-    res = analysis_enter(r'<!--enter="(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)"-->')  # noqa: RUF001
+    res = analysis_enter(
+        r'<!--enter="(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)"-->'  # noqa: RUF001
+    )
     assert res == r"(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)"  # noqa: RUF001
 
 
