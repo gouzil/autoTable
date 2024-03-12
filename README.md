@@ -25,6 +25,13 @@ autotable issue-backup gouzil/autoTable 1 github_pat_*****
 autotable issue-update gouzil/autoTable 1 github_pat_******
 ```
 
+仅更新统计
+
+```bash
+autotable issue-update-stats gouzil/autoTable 1 github_pat_******
+```
+
+
 ## 注释说明
 
 ### 适用于 issue 内部
@@ -60,6 +67,8 @@ autotable issue-update gouzil/autoTable 1 github_pat_******
 ```
 
 `【报名】：1、3、12-13` 取 `1、3、12-13`
+
+#### 以下 bot 部分可以不写
 
 * 更新统计表，这里会根据状态进行补充数据，完成率的图标恒定为🏁
 ```
