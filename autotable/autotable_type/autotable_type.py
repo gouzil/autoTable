@@ -22,9 +22,18 @@ class StatusType(Enum):
                 StatusType.PENDING,
             ):
                 return True
-            case (StatusType.PENDING_MERGE | StatusType.NEXT_STAGE | StatusType.COMPLETED, StatusType.CLAIMED):
+            case (
+                StatusType.PENDING_MERGE
+                | StatusType.NEXT_STAGE
+                | StatusType.COMPLETED,
+                StatusType.CLAIMED,
+            ):
                 return True
-            case (StatusType.NEXT_STAGE | StatusType.COMPLETED, StatusType.PENDING_MERGE):
+            case (
+                StatusType.NEXT_STAGE
+                | StatusType.COMPLETED,
+                StatusType.PENDING_MERGE,
+            ):
                 return True
             case (StatusType.COMPLETED, StatusType.NEXT_STAGE):
                 return True

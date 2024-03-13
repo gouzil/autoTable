@@ -8,7 +8,9 @@ from github.PaginatedList import PaginatedList
 from autotable.utils.fetcher import Fetcher
 
 
-def get_issues(issues_id: int) -> tuple[str, str, datetime, PaginatedList[IssueComment]]:
+def get_issues(
+    issues_id: int,
+) -> tuple[str, str, datetime, PaginatedList[IssueComment]]:
     """
     返回:
         issue.title: 标题

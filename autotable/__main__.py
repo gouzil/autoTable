@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import time
-from typing import TYPE_CHECKING
-
 import typer
 from loguru import logger
 from rich.console import Console
@@ -11,31 +8,26 @@ from rich.logging import RichHandler
 from rich.style import Style
 
 from autotable.api.issues import get_issues
-from autotable.api.prs import get_pr_list
-from autotable.processor.analysis import (
-    analysis_enter,
-    analysis_table_content,
-    analysis_table_generator,
-    analysis_title,
-)
-from autotable.processor.file import replace_table, save_file, to_markdown
-from autotable.processor.github_issue import update_issue_table
-from autotable.processor.github_prs import update_pr_table
-from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
+from autotable.command import backup, update_content, update_stats
 from autotable.utils.fetcher import Fetcher
-
-if TYPE_CHECKING:
-    from github.PaginatedList import PaginatedList
-    from github.PullRequest import PullRequest
 
 app = typer.Typer()
 
 
 def init_logger(log_level: str):
+    r"""
+    初始化日志
+    """
     handler = RichHandler(console=Console(style=Style()), highlighter=NullHighlighter(), markup=True)
     logger.remove()
     logger.add(handler, format="{message}", level=log_level)
-    logger.add("./logs/autotable.log", rotation="5MB", encoding="utf-8", enqueue=True, retention="10d")
+    logger.add(
+        "./logs/autotable.log",
+        rotation="5MB",
+        encoding="utf-8",
+        enqueue=True,
+        retention="10d",
+    )
 
 
 def init(
@@ -43,7 +35,9 @@ def init(
     token: str,
     log_level: str = "INFO",
 ):
-    # 初始化
+    r"""
+    初始化日志、github token、repo等信息
+    """
     init_logger(log_level)
     Fetcher.set_github(token)
     Fetcher.set_repo(repo)
@@ -51,94 +45,58 @@ def init(
 
 @app.command()
 def issue_update(
-    repo: str,
-    issues_id: int,
-    token: str,
-    log_level: str = "INFO",
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
+    dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
+    """
+    更新 issue 内容
+    """
     init(repo, token, log_level)
     # 获取issue内容
-    issue_title, issue_content, issue_create_time, issue_comments = get_issues(issues_id)
-
-    # 解析任务开头标题 (这是一个正则表达式)
-    title_re = analysis_title(issue_content)
-    # 解析报名正则
-    enter_re = analysis_enter(issue_content)
-    # 获取pr列表
-    pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_re)
-
-    # 大致思路为表格序号匹配标题序号
-
-    for start_str, end_str in analysis_table_generator(issue_content):
-        # 解析表格
-        doc_table = analysis_table_content(issue_content, start_str, end_str)
-
-        # 修改表格内容
-        doc_table = update_pr_table(doc_table, title_re, pr_data)
-
-        # 评论更新
-        doc_table = update_issue_table(doc_table, issue_comments, enter_re)
-
-        # 更新统计数据
-        update_stats_data(doc_table)
-
-        # 转换ast到md
-        doc_md = to_markdown(doc_table)
-        # 替换原数据表格
-        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
-
-    # 添加统计
-    # 解析数据统计表格
-    stats_start_str = "<!--stats start bot-->"
-    stats_end_str = "<!--stats end bot-->"
-    if stats_end_str in issue_content:
-        doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
-        stats_table = update_stats_table(doc_stats_table)
-        stats_md = to_markdown(stats_table)
-        issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
-
-    # 替换贡献者名单
-    contributors_start_str = "<!--contributors start bot-->"
-    contributors_end_str = "<!--contributors end bot-->"
-    if contributors_start_str in issue_content:
-        issue_content = replace_table(
-            issue_content, contributors_start_str, contributors_end_str, update_stats_people()
-        )
-
-    # TODO(gouzil): 加个diff
-    # 保存导出
-    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+    issue_title, issue_content, issue_create_time, issue_comments = get_issues(issue_id)
+    new_issue: str = update_content(issue_title, issue_content, issue_create_time, issue_comments, dry_run)
+    if overwrite_remote and not dry_run:
+        backup(issue_title, issue_content)
+        Fetcher.set_issue(issue_id, new_issue)
 
 
 @app.command()
-def issue_update_stats(repo: str, issues_id: int, token: str, log_level: str = "INFO"):
+def issue_update_stats(
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
+    dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+):
+    """
+    仅更新 issue 任务统计
+    """
     init(repo, token, log_level)
-    # 获取issue内容
-    issue_title, issue_content, _, _ = get_issues(issues_id)
-    for start_str, end_str in analysis_table_generator(issue_content):
-        # 解析表格
-        doc_table = analysis_table_content(issue_content, start_str, end_str)
-        # 更新统计数据
-        update_stats_data(doc_table, False)
-
-    # 添加统计
-    # 解析数据统计表格
-    stats_start_str = "<!--stats start bot-->"
-    stats_end_str = "<!--stats end bot-->"
-    doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
-    stats_table = update_stats_table(doc_stats_table)
-    stats_md = to_markdown(stats_table)
-    issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
-
-    # 保存导出
-    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+    issue_title, issue_content, _, _ = get_issues(issue_id)
+    new_issue: str = update_stats(issue_title, issue_content, dry_run)
+    if overwrite_remote and not dry_run:
+        backup(issue_title, issue_content)
+        Fetcher.set_issue(issue_id, new_issue)
 
 
 @app.command()
-def issue_backup(repo: str, issues_id: int, token: str, log_level: str = "INFO"):
+def issue_backup(
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+):
+    """
+    备份 issue
+    """
     init(repo, token, log_level)
-    issues_title, issue_content, _, _ = get_issues(issues_id)
-    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issues_title + ".md", issues_title)
+    issue_title, issue_content, _, _ = get_issues(issue_id)
+    backup(issue_title, issue_content)
 
 
 if __name__ == "__main__":  # pragma: no cover

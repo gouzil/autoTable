@@ -38,6 +38,7 @@ autotable issue-update gouzil/autoTable 1 github_pat_******
 autotable issue-update-stats gouzil/autoTable 1 github_pat_******
 ```
 
+更多选项请查看 `--help`
 
 ## 注释说明
 

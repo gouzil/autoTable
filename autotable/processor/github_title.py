@@ -29,7 +29,9 @@ class titleBase:
             # [No.1、2-3]
             # [No.1，2-3]  # noqa: RUF003
             # [No.1, 2-3]
-            case x if (("、" in x or "," in x or "，" in x) and "-" in x) and not self.multi_table_mode:  # noqa: RUF001
+            case x if (
+                ("、" in x or "," in x or "，" in x) and "-" in x  # noqa: RUF001
+            ) and not self.multi_table_mode:
                 return mixTitle(x)
             # [No.1]
             case x if x.strip().isdigit():
