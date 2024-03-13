@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def backup(issue_title: str, issue_content: str) -> None:
-    save_file(issue_content, f"{time.strftime("%Y-%m-%d-%H-%M-%S")}{issue_title}_backup.md", issue_title)
+    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}_backup.md", issue_title)
 
 
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
@@ -45,7 +45,7 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
 
     if dry_run:
         # 保存导出
-        save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+        save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md")
     return issue_content
 
 
@@ -103,5 +103,5 @@ def update_content(
     # TODO(gouzil): 加个diff
     if dry_run:
         # 保存导出
-        save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + issue_title + ".md")
+        save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md")
     return issue_content
