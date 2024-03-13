@@ -8,7 +8,7 @@ from rich.logging import RichHandler
 from rich.style import Style
 
 from autotable.api.issues import get_issues
-from autotable.cmd import backup, update_content, update_stats
+from autotable.command import backup, update_content, update_stats
 from autotable.utils.fetcher import Fetcher
 
 app = typer.Typer()
@@ -45,14 +45,14 @@ def init(
 
 @app.command()
 def issue_update(
-    repo: str,
-    issue_id: int,
-    token: str,
-    overwrite_remote: bool = True,
-    dry_run: bool = False,
-    log_level: str = "INFO",
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
+    dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
-    r"""
+    """
     更新 issue 内容
     """
     init(repo, token, log_level)
@@ -66,14 +66,14 @@ def issue_update(
 
 @app.command()
 def issue_update_stats(
-    repo: str,
-    issue_id: int,
-    token: str,
-    overwrite_remote: bool = True,
-    dry_run: bool = False,
-    log_level: str = "INFO",
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
+    dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
-    r"""
+    """
     仅更新 issue 任务统计
     """
     init(repo, token, log_level)
@@ -85,8 +85,13 @@ def issue_update_stats(
 
 
 @app.command()
-def issue_backup(repo: str, issue_id: int, token: str, log_level: str = "INFO"):
-    r"""
+def issue_backup(
+    repo: str = typer.Argument(..., help="仓库地址"),
+    issue_id: int = typer.Argument(..., help="issue 编号"),
+    token: str = typer.Argument(..., help="github token"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+):
+    """
     备份 issue
     """
     init(repo, token, log_level)
