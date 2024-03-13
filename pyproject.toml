@@ -65,5 +65,5 @@ test = ["xdoctest", "pytest", "pytest-cov", "coverage"]
 package-type = "library"
 
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "pdm-pyfuture"]
 build-backend = "pdm.backend"
