@@ -111,5 +111,46 @@ def clean():
     Path(log_dir()).rmdir()
 
 
+@app.command()
+def doctor():
+    """
+    自检查
+    """
+
+    # 计算应用数据大小
+    try:
+        data_size = 0
+        data_path = Path(data_dir())
+        if not data_path.exists():
+            data_path.mkdir(parents=True, exist_ok=True)
+        for files in data_path.iterdir():
+            if files.is_file():
+                data_size += files.stat().st_size
+        Console().print(rf"[green]\[✓][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M")
+    except Exception:
+        Console().print(rf"[red]\[x][/red] Data dir path: {data_dir()}")
+
+    try:
+        log_size = 0
+        log_path = Path(log_dir())
+        if not log_path.exists():
+            log_path.mkdir(parents=True, exist_ok=True)
+        for files in log_path.iterdir():
+            if files.is_file():
+                log_size += files.stat().st_size
+        Console().print(rf"[green]\[✓][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M")
+    except Exception:
+        Console().print(rf"[red]\[x][/red] Log dir path: {log_dir()}")
+
+    # check github
+    try:
+        Fetcher.set_github("")
+        Fetcher.set_repo("gouzil/autoTable")
+        Fetcher.get_issue(10).body  # noqa: B018
+        Console().print(r"[green]\[✓][/green] Github resources")
+    except Exception:
+        Console().print(r"[red]\[x][/red] Github resources")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

@@ -13,7 +13,10 @@ class Fetcher:
 
     @classmethod
     def set_github(cls, token: str) -> None:
-        Fetcher.gh = Github(auth=Auth.Token(token), per_page=100)  # 最大直接设置到100最大值
+        if token == "":
+            Fetcher.gh = Github(per_page=100)
+        else:
+            Fetcher.gh = Github(auth=Auth.Token(token), per_page=100)  # 最大直接设置到100最大值
 
     @classmethod
     def get_github(cls) -> Github:
