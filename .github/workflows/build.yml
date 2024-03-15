@@ -45,6 +45,11 @@ jobs:
       - name: Install package
         run: |
           pip install -e .
+      - name: Force using UTF-8 encoding for windows tests
+        run: poetry run python -m pytest -vs
+        if: ${{ matrix.os == 'windows-latest' }}
+        env:
+          PYTHONIOENCODING: utf-8
 
       # Test
       - name: Test clean
