@@ -19,7 +19,7 @@ def save_file(content: str, filename: str, title: str = "", dry_run: bool = Fals
         Path(data_dir()).mkdir(parents=True, exist_ok=True)
         path_: Path = Path(f"{data_dir()}/{filename}")
     logger.info(f"save file: {path_.resolve()}")
-    path_.write_text(content)
+    path_.write_text(content, encoding="utf-8")
 
 
 def to_markdown(doc: Table) -> str:
