@@ -12,6 +12,7 @@ from rich.style import Style
 
 from autotable.api.issues import get_issues
 from autotable.command import backup, update_content, update_stats
+from autotable.constant import CONSOLE_ERROR, CONSOLE_SUCCESSFUL
 from autotable.utils.appdirs import data_dir, log_dir
 from autotable.utils.fetcher import Fetcher
 
@@ -112,7 +113,7 @@ def clean():
         shutil.rmtree(data_dir())
     if Path(log_dir()).exists():
         shutil.rmtree(log_dir())
-    Console().print(r"[green]\[✓][/green] Cleanup successful")
+    Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Cleanup successful")
 
 
 @app.command()
@@ -130,9 +131,11 @@ def doctor():
         for files in data_path.iterdir():
             if files.is_file():
                 data_size += files.stat().st_size
-        Console().print(rf"[green]\[✓][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M")
+        Console().print(
+            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M"
+        )
     except Exception:
-        Console().print(rf"[red]\[x][/red] Data dir path: {data_dir()}, fail to write to file")
+        Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Data dir path: {data_dir()}, fail to write to file")
 
     try:
         log_size = 0
@@ -142,18 +145,20 @@ def doctor():
         for files in log_path.iterdir():
             if files.is_file():
                 log_size += files.stat().st_size
-        Console().print(rf"[green]\[✓][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M")
+        Console().print(
+            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M"
+        )
     except Exception:
-        Console().print(rf"[red]\[x][/red] Log dir path: {log_dir()}, fail to write to file")
+        Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Log dir path: {log_dir()}, fail to write to file")
 
     # check github
     try:
         Fetcher.set_github("")
         Fetcher.set_repo("gouzil/autoTable")
         Fetcher.get_issue(10).body  # noqa: B018
-        Console().print(r"[green]\[✓][/green] Github resources")
+        Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Github resources")
     except Exception:
-        Console().print(r"[red]\[x][/red] Github resources")
+        Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Github resources")
 
 
 if __name__ == "__main__":  # pragma: no cover
