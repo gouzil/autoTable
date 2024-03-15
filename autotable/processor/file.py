@@ -9,12 +9,15 @@ from mistletoe.markdown_renderer import MarkdownRenderer
 from autotable.utils.appdirs import data_dir
 
 
-def save_file(content: str, filename: str, title: str = ""):
+def save_file(content: str, filename: str, title: str = "", dry_run: bool = False):
     """存储文件到md"""
     if title != "":
         content = f"# {title}\n\n{content}"
-    Path(data_dir()).mkdir(parents=True, exist_ok=True)
-    path_: Path = Path(f"{data_dir()}/{filename}")
+    if dry_run:
+        path_: Path = Path(f"./{filename}")
+    else:
+        Path(data_dir()).mkdir(parents=True, exist_ok=True)
+        path_: Path = Path(f"{data_dir()}/{filename}")
     logger.info(f"save file: {path_.resolve()}")
     path_.write_text(content)
 

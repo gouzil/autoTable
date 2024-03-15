@@ -24,3 +24,38 @@ jobs:
         run: |
           pdm install
           pdm build
+
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.12", "3.11", "3.10"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      # Init
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install autotable
+        run: |
+          pip install git+https://github.com/gouzil/autoTable
+
+      # Test
+      - name: Test clean
+        run: autotable clean
+      - name: Test doctor
+        run: autotable doctor
+      - name: Test backup
+        run: autotable issue-backup gouzil/autoTable 18 ${{ secrets.GITHUB_TOKEN }}
+      - name: Test Update
+        run: autotable issue-update gouzil/autoTable 18 ${{ secrets.GITHUB_TOKEN }} --dry-run
+      - name: Test Update Stats
+        run: autotable issue-update-stats gouzil/autoTable 18 ${{ secrets.GITHUB_TOKEN }} --dry-run
+      - name: Test doctor
+        run: autotable doctor
+      - name: Test clean again
+        run: autotable clean

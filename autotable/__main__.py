@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import typer
@@ -107,8 +108,11 @@ def clean():
     """
     清理备份文件
     """
-    Path(data_dir()).rmdir()
-    Path(log_dir()).rmdir()
+    if Path(data_dir()).exists():
+        shutil.rmtree(data_dir())
+    if Path(log_dir()).exists():
+        shutil.rmtree(log_dir())
+    Console().print(r"[green]\[✓][/green] Cleanup successful")
 
 
 @app.command()
@@ -128,7 +132,7 @@ def doctor():
                 data_size += files.stat().st_size
         Console().print(rf"[green]\[✓][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M")
     except Exception:
-        Console().print(rf"[red]\[x][/red] Data dir path: {data_dir()}")
+        Console().print(rf"[red]\[x][/red] Data dir path: {data_dir()}, fail to write to file")
 
     try:
         log_size = 0
@@ -140,7 +144,7 @@ def doctor():
                 log_size += files.stat().st_size
         Console().print(rf"[green]\[✓][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M")
     except Exception:
-        Console().print(rf"[red]\[x][/red] Log dir path: {log_dir()}")
+        Console().print(rf"[red]\[x][/red] Log dir path: {log_dir()}, fail to write to file")
 
     # check github
     try:
