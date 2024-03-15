@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def backup(issue_title: str, issue_content: str) -> None:
-    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}_backup.md", issue_title)
+    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md", issue_title)
 
 
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:

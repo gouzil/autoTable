@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
 from loguru import logger
 from rich.console import Console
@@ -9,6 +11,7 @@ from rich.style import Style
 
 from autotable.api.issues import get_issues
 from autotable.command import backup, update_content, update_stats
+from autotable.utils.appdirs import data_dir, log_dir
 from autotable.utils.fetcher import Fetcher
 
 app = typer.Typer()
@@ -22,7 +25,7 @@ def init_logger(log_level: str):
     logger.remove()
     logger.add(handler, format="{message}", level=log_level)
     logger.add(
-        "./logs/autotable.log",
+        f"{log_dir()}/autotable.log",
         rotation="5MB",
         encoding="utf-8",
         enqueue=True,
@@ -97,6 +100,15 @@ def issue_backup(
     init(repo, token, log_level)
     issue_title, issue_content, _, _ = get_issues(issue_id)
     backup(issue_title, issue_content)
+
+
+@app.command()
+def clean():
+    """
+    清理备份文件
+    """
+    Path(data_dir()).rmdir()
+    Path(log_dir()).rmdir()
 
 
 if __name__ == "__main__":  # pragma: no cover
