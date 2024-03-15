@@ -2,15 +2,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from loguru import logger
 from mistletoe.block_token import Table
 from mistletoe.markdown_renderer import MarkdownRenderer
 
+from autotable.utils.appdirs import data_dir
 
-def save_file(content: str, path: str, title: str = ""):
+
+def save_file(content: str, filename: str, title: str = ""):
     """存储文件到md"""
     if title != "":
         content = f"# {title}\n\n{content}"
-    path_: Path = Path(path)
+    Path(data_dir()).mkdir(parents=True, exist_ok=True)
+    path_: Path = Path(f"{data_dir()}/{filename}")
+    logger.info(f"save file: {path_.resolve()}")
     path_.write_text(content)
 
 

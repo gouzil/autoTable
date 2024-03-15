@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from autotable.api.prs import get_pr_list
@@ -24,10 +23,8 @@ if TYPE_CHECKING:
     from github.PullRequest import PullRequest
 
 
-def backup(issue_title: str, issue_content: str, *, path: str = "~/.config/autotable/.backup") -> None:
-    backup_dir = Path(path).expanduser()
-    backup_dir.mkdir(parents=True, exist_ok=True)
-    save_file(issue_content, f"{backup_dir}/{time.strftime("%Y-%m-%d-%H-%M-%S")}{issue_title}.md", issue_title)
+def backup(issue_title: str, issue_content: str) -> None:
+    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md", issue_title)
 
 
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:

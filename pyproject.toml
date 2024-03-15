@@ -10,6 +10,7 @@ dependencies = [
     "rich>=13.7.0",
     "mistletoe>=1.2.1",
     "pytest",
+    "appdirs>=1.4.4",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -17,14 +18,6 @@ license = { text = "MIT" }
 
 [project.scripts]
 autotable = "autotable.__main__:app"
-
-[tool.pdm.build]
-excludes = ["./**/.git"]
-includes = ["autotable"]
-
-[tool.pdm.scripts]
-test.cmd = "pytest ./tests --cov=autotable --cov-context=test"
-test.help = "Launch pytest"
 
 [tool.ruff]
 line-length = 120
@@ -58,11 +51,18 @@ required-imports = ["from __future__ import annotations"]
 [tool.pyright]
 include = ["autotable"]
 
+[tool.pdm]
+distribution = true
+[tool.pdm.build]
+excludes = ["./**/.git"]
+includes = ["autotable"]
+
+[tool.pdm.scripts]
+test.cmd = "pytest ./tests --cov=autotable --cov-context=test"
+test.help = "Launch pytest"
+
 [tool.pdm.dev-dependencies]
 test = ["xdoctest", "pytest", "pytest-cov", "coverage"]
-
-[tool.pdm]
-package-type = "library"
 
 [build-system]
 requires = ["pdm-backend", "pdm-pyfuture"]
