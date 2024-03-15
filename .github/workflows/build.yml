@@ -31,6 +31,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.12", "3.11", "3.10"]
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONIOENCODING: utf-8
     permissions:
       contents: read
       issues: read
@@ -45,11 +47,6 @@ jobs:
       - name: Install package
         run: |
           pip install -e .
-      - name: Force using UTF-8 encoding for windows tests
-        run: poetry run python -m pytest -vs
-        if: ${{ matrix.os == 'windows-latest' }}
-        env:
-          PYTHONIOENCODING: utf-8
 
       # Test
       - name: Test clean
