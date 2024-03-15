@@ -65,5 +65,5 @@ test.help = "Launch pytest"
 test = ["xdoctest", "pytest", "pytest-cov", "coverage"]
 
 [build-system]
-requires = ["pdm-backend", "pdm-pyfuture"]
+requires = ["pdm-backend"]
 build-backend = "pdm.backend"
