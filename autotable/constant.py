@@ -5,7 +5,7 @@ import platform
 APPNAME = "autotable"
 APPAUTHOR = "gouzil"
 if platform.system() == "Windows":
-    CONSOLE_SUCCESSFUL = "√"
+    CONSOLE_SUCCESSFUL = "v"
     CONSOLE_ERROR = "X"
 else:
     CONSOLE_SUCCESSFUL = "✓"
