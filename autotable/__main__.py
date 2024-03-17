@@ -151,7 +151,7 @@ def doctor():
         )
     except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Log dir path: {log_dir()}, fail to write to file")
-        Console().print(f"log store error message: {error_msg}")
+        Console().print(f"Log store error message: {error_msg}")
 
     # check github
     try:
