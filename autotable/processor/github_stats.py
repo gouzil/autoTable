@@ -9,7 +9,13 @@ from autotable.storage_model.table import TablePeople, TableStatistics
 
 def update_stats_data(doc_table: Table, update_people: bool = True):
     for table_row in doc_table.children:
-        stats: StatusType = StatusType(table_row.children[0].children[0].content[0])
+        # 对已删除任务特判, 但任然会记录状态位
+        match table_row.children[0].children[0].content[0]:
+            case "~":
+                stats: StatusType = StatusType(table_row.children[0].children[0].content[1])
+            case _:
+                stats: StatusType = StatusType(table_row.children[0].children[0].content[0])
+
         TableStatistics.status[stats] += 1
 
         if stats == StatusType.COMPLETED and update_people:

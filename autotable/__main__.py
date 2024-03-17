@@ -134,8 +134,9 @@ def doctor():
         Console().print(
             rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M"
         )
-    except Exception:
+    except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Data dir path: {data_dir()}, fail to write to file")
+        Console().print(f"Data store error message: {error_msg}")
 
     try:
         log_size = 0
@@ -148,8 +149,9 @@ def doctor():
         Console().print(
             rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M"
         )
-    except Exception:
+    except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Log dir path: {log_dir()}, fail to write to file")
+        Console().print(f"log store error message: {error_msg}")
 
     # check github
     try:
@@ -157,8 +159,9 @@ def doctor():
         Fetcher.set_repo("gouzil/autoTable")
         Fetcher.get_issue(10).body  # noqa: B018
         Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Github resources")
-    except Exception:
+    except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Github resources")
+        Console().print(f"Github error message: {error_msg}")
 
 
 if __name__ == "__main__":  # pragma: no cover
