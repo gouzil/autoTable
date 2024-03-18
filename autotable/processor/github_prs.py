@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 from mistletoe.block_token import Table
-from mistletoe.span_token import RawText
+from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
@@ -36,10 +36,14 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
     close_number: set[int] = set()
 
     for table_row in table.children:
-        index: str = table_row.children[0].children[0].content
         # 跳过已经删除的行
-        if "~" in index:
+        if isinstance(table_row.children[0].children[0], Strikethrough):
             continue
+
+        assert isinstance(table_row.children[0].children[0], RawText)
+        assert isinstance(table_row.children[0].children[0].content, str)
+        assert not table_row.children[0].children[0].content.startswith("~")
+        index: str = table_row.children[0].children[0].content
 
         # 查找pr列表
         for pr in prs:
