@@ -6,7 +6,7 @@ from github.IssueComment import IssueComment
 from github.PaginatedList import PaginatedList
 from loguru import logger
 from mistletoe.block_token import Table
-from mistletoe.span_token import RawText
+from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.analysis import analysis_table_more_people
@@ -16,7 +16,14 @@ from autotable.storage_model.table import TablePeople
 
 def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment], enter_re: str) -> Table:
     for table_row in table.children:
-        index: str = table_row.children[0].children[0].content
+        if isinstance(table_row.children[0].children[0], Strikethrough):
+            assert isinstance(table_row.children[0].children[0].children[0].content[0], str)
+            index: str = table_row.children[0].children[0].children[0].content
+        else:
+            assert isinstance(table_row.children[0].children[0], RawText)
+            assert isinstance(table_row.children[0].children[0].content, str)
+            assert not table_row.children[0].children[0].content.startswith("~")
+            index: str = table_row.children[0].children[0].content
 
         for issue in issue_comments:
             if re.search(enter_re, issue.body) is None:
