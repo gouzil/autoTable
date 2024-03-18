@@ -41,6 +41,8 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             continue
 
         assert isinstance(table_row.children[0].children[0], RawText)
+        assert isinstance(table_row.children[0].children[0].content, str)
+        assert not table_row.children[0].children[0].content.startswith("~")
         index: str = table_row.children[0].children[0].content
 
         # 查找pr列表
