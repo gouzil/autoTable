@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from mistletoe.block_token import Table
+from mistletoe.span_token import Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.analysis import analysis_table_more_people
@@ -10,11 +11,13 @@ from autotable.storage_model.table import TablePeople, TableStatistics
 def update_stats_data(doc_table: Table, update_people: bool = True):
     for table_row in doc_table.children:
         # 对已删除任务特判, 但任然会记录状态位
-        match table_row.children[0].children[0].content[0]:
-            case "~":
-                stats: StatusType = StatusType(table_row.children[0].children[0].content[1])
-            case _:
-                stats: StatusType = StatusType(table_row.children[0].children[0].content[0])
+        if isinstance(table_row.children[0].children[0], Strikethrough):
+            assert isinstance(table_row.children[0].children[0].children[0].content[0], str)
+            stats: StatusType = StatusType(table_row.children[0].children[0].children[0].content[0])
+        else:
+            assert isinstance(table_row.children[0].children[0].content, str)
+            assert not table_row.children[0].children[0].content.startswith("~")
+            stats: StatusType = StatusType(table_row.children[0].children[0].content[0])
 
         TableStatistics.status[stats] += 1
 
