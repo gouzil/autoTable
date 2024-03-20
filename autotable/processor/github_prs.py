@@ -142,6 +142,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table
     pr_state_: StatusType = pr_state.match_pr_table()
     # pr_state_ > res_type
     # 🚧 > 🔵
+    # 🚧 > 🙋
     if pr_state_ > res_type:
         res_type = pr_state_
 

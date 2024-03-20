@@ -41,6 +41,13 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
             if index[1:] not in enter_indexs_list:
                 continue
 
+            # 更新序号
+            # 当前序号
+            status: StatusType = StatusType(table_row.children[0].children[0].content[0])
+            if status < StatusType.CLAIMED:
+                # 设置序号状态
+                table_row.children[0].children[0].content = f"{StatusType.CLAIMED.value}{index[1:]}"
+
             # 更新认领人
             if len(table_row.children[-2].children) == 0:
                 table_row.children[-2].children.append(RawText(""))

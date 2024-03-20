@@ -6,7 +6,8 @@ from enum import Enum
 # 按使用率排序
 class StatusType(Enum):
     PENDING = "🔵"  # 待认领
-    CLAIMED = "🚧"  # 已经认领了, 正在迁移中, 可能会有pr, 也可能没有pr
+    CLAIMED = "🙋"  # 认领
+    REPAIRING = "🚧"  # 正在迁移中, 有pr
     PENDING_MERGE = "🟢"  # 迁移完成, 等待合并
     NEXT_STAGE = "🟡"  # 当前阶段不需要人力继续跟进, 下阶段推进
     COMPLETED = "✅"  # 迁移完成
@@ -15,7 +16,8 @@ class StatusType(Enum):
         # self > other
         match (self, other):
             case (
-                StatusType.CLAIMED
+                StatusType.REPAIRING
+                | StatusType.CLAIMED
                 | StatusType.COMPLETED
                 | StatusType.PENDING_MERGE
                 | StatusType.NEXT_STAGE,
@@ -26,7 +28,7 @@ class StatusType(Enum):
                 StatusType.PENDING_MERGE
                 | StatusType.NEXT_STAGE
                 | StatusType.COMPLETED,
-                StatusType.CLAIMED,
+                StatusType.REPAIRING,
             ):
                 return True
             case (
