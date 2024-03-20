@@ -17,7 +17,7 @@ class PrType(Enum):
     def match_pr_table(self) -> StatusType:
         match self:
             case PrType.OPEN:
-                return StatusType.CLAIMED
+                return StatusType.REPAIRING
             case PrType.MERGED:
                 return StatusType.COMPLETED
             case PrType.CLOSED:
