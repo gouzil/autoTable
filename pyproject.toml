@@ -1,6 +1,6 @@
 [project]
 name = "autoTable"
-version = "0.1.0"
+version = "0.2.0beta"
 description = "Default template for PDM package"
 authors = [{ name = "gouzil", email = "530971494@qq.com" }]
 dependencies = [
