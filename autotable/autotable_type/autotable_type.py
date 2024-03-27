@@ -25,6 +25,14 @@ class StatusType(Enum):
             ):
                 return True
             case (
+                StatusType.REPAIRING
+                | StatusType.COMPLETED
+                | StatusType.PENDING_MERGE
+                | StatusType.NEXT_STAGE,
+                StatusType.CLAIMED,
+            ):
+                return True
+            case (
                 StatusType.PENDING_MERGE
                 | StatusType.NEXT_STAGE
                 | StatusType.COMPLETED,
