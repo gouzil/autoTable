@@ -19,6 +19,8 @@ def test_autotable_type_compare():
     assert not StatusType.NEXT_STAGE > StatusType.COMPLETED
     # 🙋 > 🔵
     assert StatusType.CLAIMED > StatusType.PENDING
+    # 🚧 > 🙋
+    assert StatusType.REPAIRING > StatusType.CLAIMED
 
 
 def test_PrType():
