@@ -4,6 +4,7 @@ import time
 from typing import TYPE_CHECKING
 
 from autotable.api.prs import get_pr_list
+from autotable.model.tracker_issues_data import TrackerIssuesData
 from autotable.processor.analysis import (
     analysis_enter,
     analysis_table_content,
@@ -16,9 +17,6 @@ from autotable.processor.github_prs import update_pr_table
 from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
-    from github.IssueComment import IssueComment
     from github.PaginatedList import PaginatedList
     from github.PullRequest import PullRequest
 
@@ -50,29 +48,26 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
 
 
 def update_content(
-    issue_title: str,
-    issue_content: str,
-    issue_create_time: datetime,
-    issue_comments: PaginatedList[IssueComment],
+    tracker_issues_data: TrackerIssuesData,
     dry_run: bool,
 ) -> str:
     # 解析任务开头标题 (这是一个正则表达式)
-    title_re = analysis_title(issue_content)
+    title_re = analysis_title(tracker_issues_data.issue_content)
     # 解析报名正则
-    enter_re = analysis_enter(issue_content)
+    enter_re = analysis_enter(tracker_issues_data.issue_content)
     # 获取pr列表
-    pr_data: PaginatedList[PullRequest] = get_pr_list(issue_create_time, title_re)
+    pr_data: PaginatedList[PullRequest] = get_pr_list(tracker_issues_data.issue_create_time, title_re)
 
     # 大致思路为表格序号匹配标题序号
-    for start_str, end_str in analysis_table_generator(issue_content):
+    for start_str, end_str in analysis_table_generator(tracker_issues_data.issue_content):
         # 解析表格
-        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        doc_table = analysis_table_content(tracker_issues_data.issue_content, start_str, end_str)
 
         # 修改表格内容
         doc_table = update_pr_table(doc_table, title_re, pr_data)
 
         # 评论更新
-        doc_table = update_issue_table(doc_table, issue_comments, enter_re)
+        doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)
 
         # 更新统计数据
         update_stats_data(doc_table)
@@ -80,7 +75,7 @@ def update_content(
         # 转换ast到md
         doc_md = to_markdown(doc_table)
         # 替换原数据表格
-        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
+        issue_content = replace_table(tracker_issues_data.issue_content, start_str, end_str, doc_md)
 
     # 添加统计
     # 解析数据统计表格
@@ -103,5 +98,7 @@ def update_content(
     # TODO(gouzil): 加个diff
     if dry_run:
         # 保存导出
-        save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md", dry_run=dry_run)
+        save_file(
+            issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{tracker_issues_data.issue_title}.md", dry_run=dry_run
+        )
     return issue_content

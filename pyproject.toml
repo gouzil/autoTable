@@ -1,7 +1,7 @@
 [project]
 name = "autoTable"
 version = "0.2.0beta"
-description = "Default template for PDM package"
+description = "update tracking issue table automatically"
 authors = [{ name = "gouzil", email = "530971494@qq.com" }]
 dependencies = [
     "loguru>=0.7.2",
