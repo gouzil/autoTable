@@ -5,8 +5,8 @@ description = "update tracking issue table automatically"
 authors = [{ name = "gouzil", email = "530971494@qq.com" }]
 dependencies = [
     "loguru>=0.7.2",
-    "typer>=0.9.0",
-    "PyGithub>=2.2.0",
+    "typer>=0.10.0",
+    "PyGithub>=2.3.0",
     "rich>=13.7.0",
     "mistletoe>=1.2.1",
     "pytest>=8.1.1",
