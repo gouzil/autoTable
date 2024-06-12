@@ -35,9 +35,11 @@ def test_multiple_single_title():
 def test_mix_title():
     title1 = "1, 2-4, 6"
     title2 = "1、 2-4、 6"
+    title3 = "A-[48-52]"
 
     assert titleBase(title1).distribution_parser().mate() == ["1", "2", "3", "4", "6"]
     assert titleBase(title2).distribution_parser().mate() == ["1", "2", "3", "4", "6"]
+    assert titleBase(title3).distribution_parser().mate() == ["A-48", "A-49", "A-50", "A-51", "A-52"]
 
 
 # 常见的几种错别字测试
