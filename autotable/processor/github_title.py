@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from ..utils import strtool
+
 
 class titleBase:
     def __init__(self, title_content: str) -> None:
+        # clean and forma title
+        title_content = strtool.clean_title(title_content)
+
         self.title_content = title_content
         assert self.title_content, RuntimeError("Title content is empty")
         self.multi_table_mode = self.multi_table_mode_judgment()
