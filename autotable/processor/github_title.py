@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..utils import strtool
+from autotable.utils import strtool
 
 
 class titleBase:
