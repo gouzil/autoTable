@@ -27,12 +27,12 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
 
         for issue in issue_comments:
             if re.search(enter_re, issue.body) is None:
-                logger.info(f"skip {issue.url}")
+                logger.debug(f"skip {issue.url}")
                 continue
 
             enter_indexs = re.match(enter_re, issue.body)
             if enter_indexs is None:
-                logger.error(f"Matching failed skip {issue.url}")
+                logger.debug(f"Matching failed skip {issue.url}")
                 continue
 
             # 如果标题不匹配跳过

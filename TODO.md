@@ -1,1 +1,5 @@
- - [ ] `StatusType` 的 `__gt__` 大小顺序目前还没想好
+ - [x] `StatusType` 的 `__gt__` 大小顺序目前还没想好
+ - [ ] 支持多仓库 pr 搜索
+ - [ ] 支持自定义 `StatusType` 图标
+ - [ ] 支持初始化表格时自动填充 `StatusType` 为 `StatusType.TODO`
+ - [ ] 支持初始化看板信息

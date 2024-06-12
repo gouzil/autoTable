@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from github.IssueComment import IssueComment
-from github.PaginatedList import PaginatedList
-
+from autotable.model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.fetcher import Fetcher
 
 
 def get_issues(
     issues_id: int,
-) -> tuple[str, str, datetime, PaginatedList[IssueComment]]:
+) -> TrackerIssuesData:
     """
     返回:
         issue.title: 标题
@@ -22,4 +20,9 @@ def get_issues(
     assert isinstance(issue.title, str)
     assert isinstance(issue.body, str)
     assert isinstance(issue.created_at, datetime)
-    return issue.title, issue.body, issue.created_at, issue.get_comments()
+    return TrackerIssuesData(
+        issue_title=issue.title,
+        issue_content=issue.body,
+        issue_create_time=issue.created_at,
+        issue_comments=issue.get_comments(),
+    )

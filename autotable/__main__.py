@@ -39,7 +39,7 @@ def init(
     repo: str,
     token: str,
     log_level: str = "INFO",
-):
+) -> None:
     r"""
     初始化日志、github token、repo等信息
     """
@@ -62,10 +62,13 @@ def issue_update(
     """
     init(repo, token, log_level)
     # 获取issue内容
-    issue_title, issue_content, issue_create_time, issue_comments = get_issues(issue_id)
-    new_issue: str = update_content(issue_title, issue_content, issue_create_time, issue_comments, dry_run)
+    tracker_issues_data = get_issues(issue_id)
+    new_issue: str = update_content(
+        tracker_issues_data,
+        dry_run,
+    )
     if overwrite_remote and not dry_run:
-        backup(issue_title, issue_content)
+        backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
         Fetcher.set_issue(issue_id, new_issue)
 
 
@@ -82,10 +85,10 @@ def issue_update_stats(
     仅更新 issue 任务统计
     """
     init(repo, token, log_level)
-    issue_title, issue_content, _, _ = get_issues(issue_id)
-    new_issue: str = update_stats(issue_title, issue_content, dry_run)
+    tracker_issues_data = get_issues(issue_id)
+    new_issue: str = update_stats(tracker_issues_data.issue_title, tracker_issues_data.issue_content, dry_run)
     if overwrite_remote and not dry_run:
-        backup(issue_title, issue_content)
+        backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
         Fetcher.set_issue(issue_id, new_issue)
 
 
@@ -100,8 +103,8 @@ def issue_backup(
     备份 issue
     """
     init(repo, token, log_level)
-    issue_title, issue_content, _, _ = get_issues(issue_id)
-    backup(issue_title, issue_content)
+    tracker_issues_data = get_issues(issue_id)
+    backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
 
 
 @app.command()

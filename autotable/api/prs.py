@@ -10,12 +10,12 @@ from loguru import logger
 from autotable.utils.fetcher import Fetcher
 
 
-def get_pr_list(start_time: datetime, title_re: str) -> PaginatedList[PullRequest]:
+def get_pr_list(start_time: datetime, title_re: str, repo: str = "") -> PaginatedList[PullRequest]:
     """
     筛选出符合条件的pull request
     """
     res: PaginatedList[PullRequest] = []
-    data: PaginatedList[PullRequest] = Fetcher.get_pr_list()
+    data: PaginatedList[PullRequest] = Fetcher.get_pr_list(repo)
     for i in data:
         if not i.created_at > start_time:
             logger.debug(f"end request pr number: {i.number}")
