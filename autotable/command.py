@@ -29,8 +29,11 @@ def backup(issue_title: str, issue_content: str) -> None:
 
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
     for start_str, end_str in analysis_table_generator(issue_content):
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        # 这里的repo地址不会被使用, 但是需要解析并删除
+        doc_table, _ = analysis_repo(doc_table, "default/repo")
         # 解析表格
-        doc_table = content2Table(analysis_table_content(issue_content, start_str, end_str))
+        doc_table = content2Table(doc_table)
         # 更新统计数据
         update_stats_data(doc_table, False)
 
