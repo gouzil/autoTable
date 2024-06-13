@@ -25,4 +25,5 @@ def get_issues(
         issue_content=issue.body,
         issue_create_time=issue.created_at,
         issue_comments=issue.get_comments(),
+        repo=issue.repository.full_name,
     )

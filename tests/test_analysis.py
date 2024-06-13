@@ -4,6 +4,7 @@ from mistletoe.block_token import Table
 
 from autotable.processor.analysis import (
     analysis_enter,
+    analysis_repo,
     analysis_review,
     analysis_table_content,
     analysis_table_generator,
@@ -77,3 +78,18 @@ def test_analysis_table_iter():
         ('<!--table_start="C"-->', '<!--table_end="C"-->'),
         ('<!--table_start="D"-->', '<!--table_end="D"-->'),
     ]
+
+
+def test_analysis_repo():
+    repo = "gouzil/autoTable"
+    issue_content = """
+<!--table_start="B"-->
+<!--repo="gouzil/autoTable"-->
+| 序号    | 文件                                          | API 数量 | 认领人 Github id    | PR 链接  |
+| ----- | ------------------------------------------- | ------ | ---------------- | ------ |
+| 🔵B-1  | paddle/tensor/array.py                      | 4      |       | |
+<!--table_end="B"-->
+"""
+    rep_issue = issue_content.replace(f'<!--repo="{repo}"-->', "")
+    assert analysis_repo(issue_content, "gouzil/test") == (rep_issue, repo)
+    assert analysis_repo(rep_issue, "gouzil/test") == (rep_issue, "gouzil/test")

@@ -1,17 +1,20 @@
 from __future__ import annotations
 
+import re
+
 from loguru import logger
 from mistletoe import Document, ast_renderer
 from mistletoe.block_token import Table
 
 
 # 解析markdown表格
-def analysis_table_content(content: str, start_str: str, end_str: str) -> Table:
-    """解析 markdown 表格内容"""
-    # 切分一下表格, 后期可能需要调整多表策略
-    # TODO(gouzi): 或许不应该在这里处理多表, 而是交给上层去处理
-    content = content[content.find(start_str) + len(start_str) : content.find(end_str)]
+def analysis_table_content(content: str, start_str: str, end_str: str) -> str:
+    """切分 markdown 表格内容"""
+    return content[content.find(start_str) + len(start_str) : content.find(end_str)]
 
+
+def content2Table(content: str) -> Table:
+    """将 markdown 表格转换为 Table 对象"""
     doc = Document(content.split("\n"))
     assert isinstance(doc.children[0], Table)
 
@@ -90,3 +93,26 @@ def analysis_table_generator(issue_content: str):
         if start_str.format(chr(trace_index)) not in issue_content:
             continue
         yield (start_str.format(chr(trace_index)), end_str.format(chr(trace_index)))
+
+
+def analysis_repo(issue_content: str, repo: str) -> tuple[str, str]:
+    """
+    解析repo地址
+
+    <!--repo=""-->
+    """
+    if r"/" not in repo:
+        logger.error("please check repo")
+        raise RuntimeError(f"repo format error: {repo}")
+
+    repo_start = '<!--repo="'
+    repo_end = '"-->'
+    if repo_start not in issue_content:
+        return issue_content, repo
+
+    pat = re.compile(f"{repo_start}(.*){repo_end}")
+    repo_text_list = pat.findall(issue_content)
+    assert len(repo_text_list) == 1
+    repo = repo_text_list[0]
+
+    return issue_content.replace(f"{repo_start}{repo}{repo_end}", ""), repo

@@ -7,9 +7,11 @@ from autotable.api.prs import get_pr_list
 from autotable.model.tracker_issues_data import TrackerIssuesData
 from autotable.processor.analysis import (
     analysis_enter,
+    analysis_repo,
     analysis_table_content,
     analysis_table_generator,
     analysis_title,
+    content2Table,
 )
 from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
@@ -28,7 +30,7 @@ def backup(issue_title: str, issue_content: str) -> None:
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
     for start_str, end_str in analysis_table_generator(issue_content):
         # 解析表格
-        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        doc_table = content2Table(analysis_table_content(issue_content, start_str, end_str))
         # 更新统计数据
         update_stats_data(doc_table, False)
 
@@ -36,7 +38,7 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
-    doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
+    doc_stats_table = content2Table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
     stats_table = update_stats_table(doc_stats_table)
     stats_md = to_markdown(stats_table)
     issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
@@ -51,20 +53,35 @@ def update_content(
     tracker_issues_data: TrackerIssuesData,
     dry_run: bool,
 ) -> str:
+    # issue内容
+    issue_content = tracker_issues_data.issue_content
     # 解析任务开头标题 (这是一个正则表达式)
-    title_re = analysis_title(tracker_issues_data.issue_content)
+    title_re = analysis_title(issue_content)
     # 解析报名正则
-    enter_re = analysis_enter(tracker_issues_data.issue_content)
+    enter_re = analysis_enter(issue_content)
     # 获取pr列表
     pr_data: PaginatedList[PullRequest] = get_pr_list(tracker_issues_data.issue_create_time, title_re)
 
     # 大致思路为表格序号匹配标题序号
-    for start_str, end_str in analysis_table_generator(tracker_issues_data.issue_content):
+    for start_str, end_str in analysis_table_generator(issue_content):
+        # 拆分markdown表格
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        pr_data_ = pr_data
+        pr_url_use_http_ = False
+
+        # 为当前表格单独解析 repo 地址
+        doc_table, repo_ = analysis_repo(doc_table, tracker_issues_data.repo)
+
+        # 如果repo地址不一致, 则重新获取pr列表
+        if repo_ != tracker_issues_data.repo:
+            pr_data_ = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
+            pr_url_use_http_ = True
+
         # 解析表格
-        doc_table = analysis_table_content(tracker_issues_data.issue_content, start_str, end_str)
+        doc_table = content2Table(doc_table)
 
         # 修改表格内容
-        doc_table = update_pr_table(doc_table, title_re, pr_data)
+        doc_table = update_pr_table(doc_table, title_re, pr_data_, pr_url_use_http_)
 
         # 评论更新
         doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)
@@ -74,15 +91,20 @@ def update_content(
 
         # 转换ast到md
         doc_md = to_markdown(doc_table)
+
+        # 如果repo地址不一致, 代表使用自定义repo, 则重新补充repo地址
+        if repo_ != tracker_issues_data.repo:
+            doc_md = f'<!--repo="{repo_}"-->\n' + doc_md
+
         # 替换原数据表格
-        issue_content = replace_table(tracker_issues_data.issue_content, start_str, end_str, doc_md)
+        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
 
     # 添加统计
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
     if stats_end_str in issue_content:
-        doc_stats_table = analysis_table_content(issue_content, stats_start_str, stats_end_str)
+        doc_stats_table = content2Table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
         stats_table = update_stats_table(doc_stats_table)
         stats_md = to_markdown(stats_table)
         issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)

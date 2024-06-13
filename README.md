@@ -23,19 +23,25 @@ pip install git+https://github.com/gouzil/autoTable
 备份
 
 ```bash
-autotable issue-backup gouzil/autoTable 1 github_pat_*****
+autotable issue-backup gouzil/autoTable 18 github_pat_*****
 ```
 
 更新
 
 ```bash
-autotable issue-update gouzil/autoTable 1 github_pat_******
+autotable issue-update gouzil/autoTable 18 github_pat_******
+```
+
+不更新远程issue, 仅缓存本地issue
+
+```bash
+autotable issue-update gouzil/autoTable 18 --dry-run github_pat_******
 ```
 
 仅更新统计
 
 ```bash
-autotable issue-update-stats gouzil/autoTable 1 github_pat_******
+autotable issue-update-stats gouzil/autoTable 18 github_pat_******
 ```
 
 清理本地文件
@@ -88,7 +94,7 @@ autotable doctor
 
 #### 以下 bot 部分可以不写
 
-* 更新统计表，这里会根据状态进行补充数据，完成率的图标恒定为🏁
+* 更新统计表，这里会根据状态进行补充数据，完成率的图标恒定为🏁，(如果有写标签就一定要写表格)
 ```
 <!--stats start bot-->
 | 任务数量 | 🔵可认领 | 🚧迁移中 | 🟢待合入 | ✅完成 | 🟡下阶段推进 | 🏁完成率  |
@@ -101,6 +107,21 @@ autotable doctor
 ```
 <!--contributors start bot-->
 <!--contributors end bot-->
+```
+
+* 自定义 repo, 设置了这个参数会从这个 repo 中获取 pulls 信息
+```
+<!--repo="gouzil/autoTable"-->
+```
+例子：
+```
+<!--table_start="A"-->
+<!--repo="gouzil/autoTable"-->
+|  序号  |  文件位置  |  认领人  |  PR  |
+| :---: | :---: | :---: | :---: |
+| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | #1 |
+| 🔵A-2 | test_cummax_op.py |   |  |
+<!--table_end="A"-->
 ```
 
 ### 适用于 PR 内，在 APPROVED 时添加
