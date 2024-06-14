@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from autotable.model.tracker_issues_data import TrackerIssuesData
+from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.fetcher import Fetcher
 
 

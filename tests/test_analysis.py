@@ -10,7 +10,9 @@ from autotable.processor.analysis import (
     analysis_table_generator,
     analysis_table_more_people,
     analysis_title,
+    content2Table,
 )
+from autotable.processor.file import replace_table, to_markdown
 
 
 def test_analysis_title():
@@ -23,16 +25,18 @@ def test_analysis_table_content():
     "解析是否为表格"
     start_str: str = '<!--table_start="A"-->'
     end_str: str = '<!--table_end="A"-->'
-    table = f"""
-{start_str}
-|  序号  |  文件位置  |  认领人  |  PR  |
-| :---: | :---: | :---: | :---: |
-| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | #1 |
-| 🔵A-2 | test_cummax_op.py |   |  |
-{end_str}
+    table = """|  序号  |       文件位置        |   认领人    | PR  |
+| :--: | :---------------: | :------: | :-: |
+| 🚧A-1 |  amp_o2_pass.py   | 🚧@gouzil | #1  |
+| 🔵A-2 | test_cummax_op.py |          |     |
 """
-    res = analysis_table_content(table, start_str, end_str)
+
+    issues_content = f"{start_str}\ntable\n{end_str}"
+
+    res = content2Table(analysis_table_content(f"{start_str}\n{table}{end_str}", start_str, end_str))
     assert isinstance(res, Table)
+    assert to_markdown(res) == table
+    assert replace_table(issues_content, start_str, end_str, table) == f"{start_str}\n{table}{end_str}"
 
 
 def test_analysis_enter():

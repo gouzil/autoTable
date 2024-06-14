@@ -4,7 +4,6 @@ import time
 from typing import TYPE_CHECKING
 
 from autotable.api.prs import get_pr_list
-from autotable.model.tracker_issues_data import TrackerIssuesData
 from autotable.processor.analysis import (
     analysis_enter,
     analysis_repo,
@@ -17,6 +16,7 @@ from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
 from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
+from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 
 if TYPE_CHECKING:
     from github.PaginatedList import PaginatedList

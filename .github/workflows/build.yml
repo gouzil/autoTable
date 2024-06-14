@@ -24,6 +24,14 @@ jobs:
         run: |
           pdm build
 
+      - name: PDM Install
+        run: |
+          pdm install
+
+      - name: PDM coverage
+        run: |
+          pdm test
+
   tests:
     needs: build
     strategy:
