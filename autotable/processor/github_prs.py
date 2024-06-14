@@ -31,9 +31,9 @@ table.children:
 """
 
 
-def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]) -> Table:
+def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest], pr_url_use_http: bool) -> Table:
     # 记录已经关闭了的号码
-    close_number: set[int] = set()
+    close_prs: set[PullRequest] = set()
 
     for table_row in table.children:
         # 跳过已经删除的行
@@ -51,10 +51,12 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             pr_state: PrType = get_pr_type(pr)
             # 跳过已经关闭了的pr
             if pr_state is PrType.CLOSED:
-                close_number.add(pr.number)
+                close_prs.add(pr)
                 continue
 
-            pr_indexs_re = re.match(title_re, pr.title)
+            # NOTE: 直接使用 match 会与 search 的不一致
+            pr_title = re.search(title_re, pr.title).group()
+            pr_indexs_re = re.match(title_re, pr_title)
 
             if pr_indexs_re is None:
                 logger.error(f"{pr.number} Parsing title error")
@@ -79,25 +81,12 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             # 设置序号状态
             table_row.children[0].children[0].content = f"{status.value}{index[1:]}"
 
-            # 更新 pr 号, 倒数第一列为 pr 号列
+            # 更新 pr 号
             if len(table_row.children[-1].children) == 0:
                 table_row.children[-1].children.append(RawText(""))
-            pr_table_list: list[int] = [pr.number]
-            pr_table_list.extend(
-                [int(x[1:]) for x in analysis_table_more_people(table_row.children[-1].children[0].content)]
+            table_row.children[-1].children[0].content = update_pr_url(
+                pr_url_use_http, table_row.children[-1].children[0].content, pr, close_prs
             )
-            pr_table_list = list(set(pr_table_list))
-            table_pr_num: str = ""
-            if len(pr_table_list) == 1:
-                table_pr_num = f"#{pr_table_list[0]}"
-            else:
-                for pr_table in pr_table_list:
-                    # 不生成关闭的pr
-                    if pr_table in close_number:
-                        continue
-                    table_pr_num += f"#{pr_table}<br/>"
-
-            table_row.children[-1].children[0].content = table_pr_num
 
             # 更新认领人
             if len(table_row.children[-2].children) == 0:
@@ -122,12 +111,6 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             table_row.children[-2].children[0].content = table_people_names
 
     return table
-
-
-# 理想状态
-"""
-| 🔵1 | test_varname_inplace_ipu.py | 🚧@gouzil<br/>🚧@gouzil | 🟢#123<br/>🚧#456 |
-"""
 
 
 def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table_content: str) -> StatusType:
@@ -188,3 +171,34 @@ def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePe
             res.append(people)
 
     return res
+
+
+def update_pr_url(use_http: bool, table_row: str, pr: PullRequest, close_prs: set[PullRequest]) -> str:
+    """更新 pr 号, 倒数第一列为 pr 号列, 根据是否为其他仓库决定是否使用 http 链接"""
+    table_pr_num: str = ""
+    if use_http:
+        pr_table_list = [pr.html_url]
+        pr_table_list.extend(analysis_table_more_people(table_row))
+        pr_table_list = list(set(pr_table_list))
+        if len(pr_table_list) == 1:
+            table_pr_num = pr_table_list[0]
+        else:
+            for pr_table in pr_table_list:
+                # 不生成关闭的pr
+                if pr_table in [x.html_url for x in close_prs]:
+                    continue
+                table_pr_num += f"{pr_table}<br/>"
+    else:
+        pr_table_list = [pr.number]
+        pr_table_list.extend([int(x[1:]) for x in analysis_table_more_people(table_row)])
+        pr_table_list = list(set(pr_table_list))
+        if len(pr_table_list) == 1:
+            table_pr_num = f"#{pr_table_list[0]}"
+        else:
+            for pr_table in pr_table_list:
+                # 不生成关闭的pr
+                if pr_table in [x.number for x in close_prs]:
+                    continue
+                table_pr_num += f"#{pr_table}<br/>"
+
+    return table_pr_num

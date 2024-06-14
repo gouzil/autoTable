@@ -13,3 +13,4 @@ class TrackerIssuesData:
     issue_content: str
     issue_create_time: datetime
     issue_comments: PaginatedList[IssueComment]
+    repo: str
