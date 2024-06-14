@@ -70,7 +70,7 @@ excludes = ["./**/.git"]
 includes = ["autotable"]
 
 [tool.pdm.scripts]
-test.cmd = "pytest ./tests --cov=autotable --cov-context=test"
+test.cmd = "pytest ./tests --cov=autotable --cov-context=test --cache-clear"
 test.help = "Launch pytest"
 
 [tool.pdm.dev-dependencies]
