@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.github_prs import TablePeople_list_repeat
+from autotable.processor.utils import TablePeople_list_repeat
 from autotable.storage_model.table import TablePeople
 
 

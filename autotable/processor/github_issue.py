@@ -9,9 +9,8 @@ from mistletoe.block_token import Table
 from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.analysis import analysis_table_more_people
 from autotable.processor.github_title import titleBase
-from autotable.storage_model.table import TablePeople
+from autotable.processor.utils import update_table_people
 
 
 def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment], enter_re: str) -> Table:
@@ -51,24 +50,9 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
             # 更新认领人
             if len(table_row.children[-2].children) == 0:
                 table_row.children[-2].children.append(RawText(""))
-            # 处理人名
-            # 第一位是@位, 第二位是状态位
-            people_names: list[TablePeople] = [TablePeople(StatusType.CLAIMED, issue.user.login)]
-            people_names.extend(
-                [
-                    TablePeople(StatusType(x[0]), x[2:])
-                    for x in analysis_table_more_people(table_row.children[-2].children[0].content)
-                ]
-            )
-            table_people_names: str = table_row.children[-2].children[0].content
-            if len(people_names) == 1:
-                table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
-            else:
-                for people in people_names:
-                    # 这里全部以 pr 状态为主
-                    if people.github_id not in table_people_names:
-                        table_people_names += f"{people.status.value}@{people.github_id}<br/>"
 
-            table_row.children[-2].children[0].content = table_people_names
+            table_row.children[-2].children[0].content = update_table_people(
+                StatusType.CLAIMED, issue.user.login, table_row.children[-2].children[0].content
+            )
 
     return table
