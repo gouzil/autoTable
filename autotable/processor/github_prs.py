@@ -11,7 +11,7 @@ from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import titleBase
-from autotable.storage_model.table import TablePeople
+from autotable.processor.utils import update_table_people
 
 if TYPE_CHECKING:
     from github.PaginatedList import PaginatedList
@@ -55,8 +55,9 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
                 continue
 
             # NOTE: 直接使用 match 会与 search 的不一致
-            pr_title = re.search(title_re, pr.title).group()
-            pr_indexs_re = re.match(title_re, pr_title)
+            pr_title = re.search(title_re, pr.title)
+            assert pr_title is not None
+            pr_indexs_re = re.match(title_re, pr_title.group())
 
             if pr_indexs_re is None:
                 logger.error(f"{pr.number} Parsing title error")
@@ -91,24 +92,10 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             # 更新认领人
             if len(table_row.children[-2].children) == 0:
                 table_row.children[-2].children.append(RawText(""))
-            # 处理人名
-            # 第一位是@位, 第二位是状态位
-            people_names: list[TablePeople] = [TablePeople(status, pr.user.login)]
-            people_names.extend(
-                [
-                    TablePeople(StatusType(x[0]), x[2:])
-                    for x in analysis_table_more_people(table_row.children[-2].children[0].content)
-                ]
-            )
-            people_names = TablePeople_list_repeat(people_names)
-            table_people_names: str = ""
-            if len(people_names) == 1:
-                table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
-            else:
-                for people in people_names:
-                    table_people_names += f"{people.status.value}@{people.github_id}<br/>"
 
-            table_row.children[-2].children[0].content = table_people_names
+            table_row.children[-2].children[0].content = update_table_people(
+                status, pr.user.login, table_row.children[-2].children[0].content
+            )
 
     return table
 
@@ -148,29 +135,6 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table
         return StatusType.PENDING_MERGE
 
     return res_type
-
-
-# TablePeople 去重, 这里会调整状态
-def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePeople]:
-    res: list[TablePeople] = []
-    for people in TablePeople_list:
-        write = True
-        for res_index, res_data in enumerate(res):
-            if people.github_id == res_data.github_id and people.status == res_data.status:
-                write = False
-                break
-            if people.github_id != res_data.github_id:
-                continue
-            # 取较大的那个状态更新
-            if res_data.status > people.status:
-                write = False
-            else:
-                res[res_index].status = people.status
-                write = False
-        if write:
-            res.append(people)
-
-    return res
 
 
 def update_pr_url(use_http: bool, table_row: str, pr: PullRequest, close_prs: set[PullRequest]) -> str:
