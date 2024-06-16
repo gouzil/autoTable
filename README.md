@@ -120,7 +120,7 @@ autotable doctor
 <!--repo="gouzil/autoTable"-->
 |  序号  |  文件位置  |  认领人  |  PR  |
 | :---: | :---: | :---: | :---: |
-| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | #1 |
+| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | https://github.com/gouzil/autoTable/pull/1 |
 | 🔵A-2 | test_cummax_op.py |   |  |
 <!--table_end="A"-->
 ```
