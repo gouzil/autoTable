@@ -46,9 +46,6 @@ class Fetcher:
     def get_pr_list(cls, repo_name: str) -> PaginatedList[PullRequest]:
         assert cls.gh is not None
         assert cls.repo is not None
-        # # 如果已经获取过了就直接返回
-        # if repo_name != "" and repo_name in cls.repo_pr_list:
-        #     return cls.repo_pr_list[repo_name]
 
         repo_: Repository = cls.repo
 
