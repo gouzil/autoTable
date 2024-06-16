@@ -60,7 +60,7 @@ autotable doctor
 
 ### 适用于 issue 内部
 * 表示一个表格的开始和结束, A到Z大写
-```
+```md
 <!--table_start="A"-->
 |  序号  |  文件位置  |  认领人  |  PR  |
 | :---: | :---: | :---: | :---: |
@@ -77,7 +77,7 @@ autotable doctor
 
 * 正则标题, 这里只需要获取任务序号，需要与表格序号一致，除状态位
 
-```
+```md
 <!--title_name="\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"-->
 ```
 
@@ -86,7 +86,7 @@ autotable doctor
 
 * 正则报名信息，这里同样只需要获取所有的任务序号
 
-```
+```md
 <!--enter="(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)"-->
 ```
 
@@ -95,7 +95,7 @@ autotable doctor
 #### 以下 bot 部分可以不写
 
 * 更新统计表，这里会根据状态进行补充数据，完成率的图标恒定为🏁，(如果有写标签就一定要写表格)
-```
+```md
 <!--stats start bot-->
 | 任务数量 | 🔵可认领 | 🚧迁移中 | 🟢待合入 | ✅完成 | 🟡下阶段推进 | 🏁完成率  |
 | ---- | ---- | ---- | ---- | --- | ------ | ----- |
@@ -104,17 +104,18 @@ autotable doctor
 ```
 
 * 贡献者名单，这个有写就会自动添加，不需要手动添加
-```
+```md
 <!--contributors start bot-->
 <!--contributors end bot-->
 ```
 
 * 自定义 repo, 设置了这个参数会从这个 repo 中获取 pulls 信息
-```
-<!--repo="gouzil/autoTable"-->
+```md
+<!--repo="gouzil/autoTable"--> 单repo
+<!--repo="gouzil/autoTable;gouzil/test"--> 多repo
 ```
 例子：
-```
+```md
 <!--table_start="A"-->
 <!--repo="gouzil/autoTable"-->
 |  序号  |  文件位置  |  认领人  |  PR  |
@@ -127,7 +128,7 @@ autotable doctor
 ### 适用于 PR 内，在 APPROVED 时添加
 
 * 根据`bot_next`内的任务序号去改变状态为🟡
-```
+```md
 <!--bot_next="A-1"-->
 ```
 

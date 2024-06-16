@@ -95,9 +95,9 @@ def analysis_table_generator(issue_content: str):
         yield (start_str.format(chr(trace_index)), end_str.format(chr(trace_index)))
 
 
-def analysis_repo(issue_content: str, repo: str) -> tuple[str, str]:
+def analysis_repo(issue_content: str, repo: str) -> tuple[str, list[str]]:
     """
-    解析repo地址
+    解析repo地址, 支持多个repo, 使用;分割
 
     <!--repo=""-->
     """
@@ -108,11 +108,13 @@ def analysis_repo(issue_content: str, repo: str) -> tuple[str, str]:
     repo_start = '<!--repo="'
     repo_end = '"-->'
     if repo_start not in issue_content:
-        return issue_content, repo
+        return issue_content, [repo]
 
-    pat = re.compile(f"{repo_start}(.*){repo_end}")
-    repo_text_list = pat.findall(issue_content)
-    assert len(repo_text_list) == 1
-    repo = repo_text_list[0]
+    repo_text_list = re.search(f"{repo_start}(.*){repo_end}", issue_content)
+    assert repo_text_list is not None
+    res_repo = repo_text_list.group(1).split(";")
+    if res_repo[-1] == "":
+        res_repo.pop()
+    res_repo = list(set(res_repo))
 
-    return issue_content.replace(f"{repo_start}{repo}{repo_end}", ""), repo
+    return issue_content.replace(f"{repo_start}{repo_text_list.group(1)}{repo_end}", ""), res_repo

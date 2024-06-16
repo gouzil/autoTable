@@ -69,22 +69,26 @@ def update_content(
     for start_str, end_str in analysis_table_generator(issue_content):
         # 拆分markdown表格
         doc_table = analysis_table_content(issue_content, start_str, end_str)
-        pr_data_ = pr_data
+        # 存储多个 repo 的 pr 数据
+        pr_data_list = [pr_data]
         pr_url_use_http_ = False
 
         # 为当前表格单独解析 repo 地址
-        doc_table, repo_ = analysis_repo(doc_table, tracker_issues_data.repo)
+        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
 
         # 如果repo地址不一致, 则重新获取pr列表
-        if repo_ != tracker_issues_data.repo:
-            pr_data_ = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
+        if len(repo_list_) != 0:
+            for repo_ in repo_list_:
+                pr_data_list.append(get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_))
             pr_url_use_http_ = True
 
         # 解析表格
         doc_table = content2Table(doc_table)
 
-        # 修改表格内容
-        doc_table = update_pr_table(doc_table, title_re, pr_data_, pr_url_use_http_)
+        # 修改表格内容, 根据多个repo的pr数据更新
+        for pr_data_ in pr_data_list:
+            # 更新pr数据
+            doc_table = update_pr_table(doc_table, title_re, pr_data_, pr_url_use_http_)
 
         # 评论更新
         doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)
@@ -96,8 +100,8 @@ def update_content(
         doc_md = to_markdown(doc_table)
 
         # 如果repo地址不一致, 代表使用自定义repo, 则重新补充repo地址
-        if repo_ != tracker_issues_data.repo:
-            doc_md = f'<!--repo="{repo_}"-->\n' + doc_md
+        if len(repo_list_) != 0:
+            doc_md = f'<!--repo="{";".join(repo_list_)}"-->\n' + doc_md
 
         # 替换原数据表格
         issue_content = replace_table(issue_content, start_str, end_str, doc_md)

@@ -64,7 +64,13 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
                 continue
 
             pr_indexs_text = pr_indexs_re.group("task_id")
-            pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
+
+            # 防止一些不是序号的标题
+            try:
+                pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
+            except RuntimeError:
+                logger.error(f"{pr.number} Parsing title error, title: {pr.title}")
+                continue
 
             # 如果与序号不匹配跳过
             if index[1:] not in pr_index_list:
