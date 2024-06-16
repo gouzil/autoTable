@@ -86,14 +86,25 @@ def test_analysis_table_iter():
 
 def test_analysis_repo():
     repo = "gouzil/autoTable"
-    issue_content = """
+    test_repo = "gouzil/test"
+    issue_content = f"""
 <!--table_start="B"-->
-<!--repo="gouzil/autoTable"-->
+<!--repo="{repo}"-->
 | 序号    | 文件                                          | API 数量 | 认领人 Github id    | PR 链接  |
 | ----- | ------------------------------------------- | ------ | ---------------- | ------ |
 | 🔵B-1  | paddle/tensor/array.py                      | 4      |       | |
 <!--table_end="B"-->
 """
     rep_issue = issue_content.replace(f'<!--repo="{repo}"-->', "")
-    assert analysis_repo(issue_content, "gouzil/test") == (rep_issue, repo)
-    assert analysis_repo(rep_issue, "gouzil/test") == (rep_issue, "gouzil/test")
+    assert analysis_repo(issue_content, test_repo) == (rep_issue, [repo])
+    assert analysis_repo(rep_issue, test_repo) == (rep_issue, [test_repo])
+
+    issue_content_ = issue_content.replace(f'<!--repo="{repo}"-->', f'<!--repo="{repo};{repo}"-->')
+    repos_issue_ = issue_content_.replace(f'<!--repo="{repo};{repo}"-->', "")
+    assert analysis_repo(issue_content_, test_repo) == (repos_issue_, [repo])
+
+    issue_content_ = issue_content.replace(f'<!--repo="{repo}"-->', f'<!--repo="{repo};{test_repo}"-->')
+    repos_issue_ = issue_content_.replace(f'<!--repo="{repo};{test_repo}"-->', "")
+    analysis_res = analysis_repo(issue_content_, test_repo)
+    assert analysis_res[0] == repos_issue_
+    assert analysis_res[1] == [repo, test_repo] or analysis_res[1] == [test_repo, repo]
