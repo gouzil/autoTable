@@ -70,7 +70,7 @@ def update_content(
         # 拆分markdown表格
         doc_table = analysis_table_content(issue_content, start_str, end_str)
         # 存储多个 repo 的 pr 数据
-        pr_data_list = [pr_data]
+        pr_data_list = [pr_data] if len(pr_data) != 0 else []  # type: ignore  # noqa: PGH003
         pr_url_use_http_ = False
 
         # 为当前表格单独解析 repo 地址
