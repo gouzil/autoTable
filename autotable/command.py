@@ -17,6 +17,7 @@ from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
 from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
+from autotable.utils.migrate import migrate_pr_url_02to03
 
 if TYPE_CHECKING:
     from github.PaginatedList import PaginatedList
@@ -56,6 +57,9 @@ def update_content(
     tracker_issues_data: TrackerIssuesData,
     dry_run: bool,
 ) -> str:
+    assert tracker_issues_data.issue_create_time is not None
+    assert tracker_issues_data.issue_comments is not None
+
     # issue内容
     issue_content = tracker_issues_data.issue_content
     # 解析任务开头标题 (这是一个正则表达式)
@@ -71,7 +75,6 @@ def update_content(
         doc_table = analysis_table_content(issue_content, start_str, end_str)
         # 存储多个 repo 的 pr 数据
         pr_data_list = [pr_data] if len(pr_data) != 0 else []  # type: ignore  # noqa: PGH003
-        pr_url_use_http_ = False
 
         # 为当前表格单独解析 repo 地址
         doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
@@ -83,7 +86,6 @@ def update_content(
                 # 去除pr列表为空的repo
                 if len(pull_request_list) != 0:  # type: ignore  # noqa: PGH003
                     pr_data_list.append(pull_request_list)
-            pr_url_use_http_ = True
 
         # 解析表格
         doc_table = content2Table(doc_table)
@@ -92,14 +94,7 @@ def update_content(
         for pr_data_ in pr_data_list:
             assert len(pr_data_) != 0  # type: ignore  # noqa: PGH003
             # 更新pr数据
-            doc_table = update_pr_table(
-                doc_table,
-                title_re,
-                pr_data_,
-                False
-                if pr_data_[0].base.repo.full_name == tracker_issues_data.repo
-                else pr_url_use_http_,  # TODO:或许填写了自定义repo都应该使用http, 而不应该区分他是不是自己的repo
-            )
+            doc_table = update_pr_table(doc_table, title_re, pr_data_)
 
         # 评论更新
         doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)
@@ -141,4 +136,40 @@ def update_content(
         save_file(
             issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{tracker_issues_data.issue_title}.md", dry_run=dry_run
         )
+    return issue_content
+
+
+def replacement_pr_url(tracker_issues_data: TrackerIssuesData) -> str:
+    """
+    替换url
+
+    https://github.com/gouzil/autoTable/pull/1 -> gouzil/autoTable#1
+    #1 -> gouzil/autoTable#1
+
+    """
+    # issue内容
+    issue_content = tracker_issues_data.issue_content
+
+    for start_str, end_str in analysis_table_generator(issue_content):
+        # 拆分markdown表格
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
+
+        # 为当前表格单独解析 repo 地址
+        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
+
+        # 解析表格
+        doc_table = content2Table(doc_table)
+
+        doc_table = migrate_pr_url_02to03(doc_table, tracker_issues_data.repo)
+
+        # 转换ast到md
+        doc_md = to_markdown(doc_table)
+
+        # 如果repo地址不一致, 代表使用自定义repo, 则重新补充repo地址
+        if len(repo_list_) != 0:
+            doc_md = f'<!--repo="{";".join(repo_list_)}"-->\n' + doc_md
+
+        # 替换原数据表格
+        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
+
     return issue_content

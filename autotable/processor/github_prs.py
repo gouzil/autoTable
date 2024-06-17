@@ -31,7 +31,7 @@ table.children:
 """
 
 
-def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest], pr_url_use_http: bool) -> Table:
+def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]) -> Table:
     # 记录已经关闭了的号码
     close_prs: set[PullRequest] = set()
 
@@ -92,7 +92,7 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             if len(table_row.children[-1].children) == 0:
                 table_row.children[-1].children.append(RawText(""))
             table_row.children[-1].children[0].content = update_pr_url(
-                pr_url_use_http, table_row.children[-1].children[0].content, pr, close_prs
+                table_row.children[-1].children[0].content, pr, close_prs
             )
 
             # 更新认领人
@@ -143,32 +143,19 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table
     return res_type
 
 
-def update_pr_url(use_http: bool, table_row: str, pr: PullRequest, close_prs: set[PullRequest]) -> str:
+def update_pr_url(table_row: str, pr: PullRequest, close_prs: set[PullRequest]) -> str:
     """更新 pr 号, 倒数第一列为 pr 号列, 根据是否为其他仓库决定是否使用 http 链接"""
     table_pr_num: str = ""
-    if use_http:
-        pr_table_list = [pr.html_url]
-        pr_table_list.extend(analysis_table_more_people(table_row))
-        pr_table_list = list(set(pr_table_list))
-        if len(pr_table_list) == 1:
-            table_pr_num = pr_table_list[0]
-        else:
-            for pr_table in pr_table_list:
-                # 不生成关闭的pr
-                if pr_table in [x.html_url for x in close_prs]:
-                    continue
-                table_pr_num += f"{pr_table}<br/>"
+    pr_table_list = [f"{pr.base.repo.full_name}#{pr.number}"]
+    pr_table_list.extend(analysis_table_more_people(table_row))
+    pr_table_list = list(set(pr_table_list))
+    if len(pr_table_list) == 1:
+        table_pr_num = pr_table_list[0]
     else:
-        pr_table_list = [pr.number]
-        pr_table_list.extend([int(x[1:]) for x in analysis_table_more_people(table_row)])
-        pr_table_list = list(set(pr_table_list))
-        if len(pr_table_list) == 1:
-            table_pr_num = f"#{pr_table_list[0]}"
-        else:
-            for pr_table in pr_table_list:
-                # 不生成关闭的pr
-                if pr_table in [x.number for x in close_prs]:
-                    continue
-                table_pr_num += f"#{pr_table}<br/>"
+        for pr_table in pr_table_list:
+            # 不生成关闭的pr
+            if pr_table in [f"{x.base.repo.full_name}#{x.number}" for x in close_prs]:
+                continue
+            table_pr_num += f"{pr_table}<br/>"
 
     return table_pr_num

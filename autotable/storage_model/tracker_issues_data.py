@@ -11,6 +11,6 @@ from github.PaginatedList import PaginatedList
 class TrackerIssuesData:
     issue_title: str
     issue_content: str
-    issue_create_time: datetime
-    issue_comments: PaginatedList[IssueComment]
+    issue_create_time: datetime | None
+    issue_comments: PaginatedList[IssueComment] | None
     repo: str

@@ -120,7 +120,7 @@ autotable doctor
 <!--repo="gouzil/autoTable"-->
 |  序号  |  文件位置  |  认领人  |  PR  |
 | :---: | :---: | :---: | :---: |
-| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | https://github.com/gouzil/autoTable/pull/1 |
+| 🚧A-1 | amp_o2_pass.py |  🚧@gouzil  | gouzil/autoTable/#1 |
 | 🔵A-2 | test_cummax_op.py |   |  |
 <!--table_end="A"-->
 ```
@@ -133,3 +133,14 @@ autotable doctor
 ```
 
 
+## 不兼容提示
+
+v0.2.0->v0.3.0
+
+在v0.3.0版本中 pr 链接将会全部使用`gouzil/autoTable/#1`的表现形式.
+
+如果之前使用了`#1`的形式或者`https://github.com/gouzil/autoTable/pull/1`形式,
+可以使用 `autotable migrate02to03 gouzil/autoTable [issue_id | local_file]` 命令进行修改,
+如遇到迁移失败则需要手动修改。
+
+更多选项请查看 `autotable migrate02to03 --help`
