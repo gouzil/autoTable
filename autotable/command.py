@@ -70,7 +70,7 @@ def update_content(
         # 拆分markdown表格
         doc_table = analysis_table_content(issue_content, start_str, end_str)
         # 存储多个 repo 的 pr 数据
-        pr_data_list = [pr_data]
+        pr_data_list = [pr_data] if len(pr_data) != 0 else []  # type: ignore  # noqa: PGH003
         pr_url_use_http_ = False
 
         # 为当前表格单独解析 repo 地址
@@ -79,7 +79,10 @@ def update_content(
         # 如果repo地址不一致, 则重新获取pr列表
         if len(repo_list_) != 0:
             for repo_ in repo_list_:
-                pr_data_list.append(get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_))
+                pull_request_list = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
+                # 去除pr列表为空的repo
+                if len(pull_request_list) != 0:  # type: ignore  # noqa: PGH003
+                    pr_data_list.append(pull_request_list)
             pr_url_use_http_ = True
 
         # 解析表格
@@ -87,8 +90,16 @@ def update_content(
 
         # 修改表格内容, 根据多个repo的pr数据更新
         for pr_data_ in pr_data_list:
+            assert len(pr_data_) != 0  # type: ignore  # noqa: PGH003
             # 更新pr数据
-            doc_table = update_pr_table(doc_table, title_re, pr_data_, pr_url_use_http_)
+            doc_table = update_pr_table(
+                doc_table,
+                title_re,
+                pr_data_,
+                False
+                if pr_data_[0].base.repo.full_name == tracker_issues_data.repo
+                else pr_url_use_http_,  # TODO:或许填写了自定义repo都应该使用http, 而不应该区分他是不是自己的repo
+            )
 
         # 评论更新
         doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)
