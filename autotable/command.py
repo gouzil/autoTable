@@ -88,7 +88,14 @@ def update_content(
         # 修改表格内容, 根据多个repo的pr数据更新
         for pr_data_ in pr_data_list:
             # 更新pr数据
-            doc_table = update_pr_table(doc_table, title_re, pr_data_, pr_url_use_http_)
+            doc_table = update_pr_table(
+                doc_table,
+                title_re,
+                pr_data_,
+                False
+                if pr_data_[0].base.repo.full_name == tracker_issues_data.repo
+                else pr_url_use_http_,  # TODO:或许填写了自定义repo都应该使用http, 而不应该区分他是不是自己的repo
+            )
 
         # 评论更新
         doc_table = update_issue_table(doc_table, tracker_issues_data.issue_comments, enter_re)

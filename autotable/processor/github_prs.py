@@ -69,7 +69,7 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             try:
                 pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
             except RuntimeError:
-                logger.error(f"{pr.number} Parsing title error, title: {pr.title}")
+                logger.debug(f"{pr.number} Parsing title error, title: {pr.title}")
                 continue
 
             # 如果与序号不匹配跳过
