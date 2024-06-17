@@ -79,7 +79,10 @@ def update_content(
         # 如果repo地址不一致, 则重新获取pr列表
         if len(repo_list_) != 0:
             for repo_ in repo_list_:
-                pr_data_list.append(get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_))
+                pull_request_list = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
+                # 去除pr列表为空的repo
+                if len(pull_request_list) != 0:  # type: ignore  # noqa: PGH003
+                    pr_data_list.append(pull_request_list)
             pr_url_use_http_ = True
 
         # 解析表格
@@ -87,6 +90,7 @@ def update_content(
 
         # 修改表格内容, 根据多个repo的pr数据更新
         for pr_data_ in pr_data_list:
+            assert len(pr_data_) != 0  # type: ignore  # noqa: PGH003
             # 更新pr数据
             doc_table = update_pr_table(
                 doc_table,
