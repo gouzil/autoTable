@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from github.PullRequest import PullRequest
     from github.PullRequestReview import PullRequestReview
 
+globe_error_prs: set[PullRequest] = set()
+
 """
 table.header:
 |                     序号                        |                     文件位置                     |  认领人  |  PR  |
@@ -60,7 +62,9 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             pr_indexs_re = re.match(title_re, pr_title.group())
 
             if pr_indexs_re is None:
-                logger.error(f"{pr.number} Parsing title error")
+                if pr not in globe_error_prs:
+                    globe_error_prs.add(pr)
+                    logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
                 continue
 
             pr_indexs_text = pr_indexs_re.group("task_id")
@@ -69,7 +73,9 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
             try:
                 pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
             except RuntimeError:
-                logger.debug(f"{pr.number} Parsing title error, title: {pr.title}")
+                if pr not in globe_error_prs:
+                    globe_error_prs.add(pr)
+                    logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
                 continue
 
             # 如果与序号不匹配跳过
