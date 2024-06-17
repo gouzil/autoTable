@@ -11,8 +11,10 @@ from rich.logging import RichHandler
 from rich.style import Style
 
 from autotable.api.issues import get_issues
-from autotable.command import backup, update_content, update_stats
+from autotable.command import backup, replacement_pr_url, update_content, update_stats
 from autotable.constant import CONSOLE_ERROR, CONSOLE_SUCCESSFUL
+from autotable.processor.file import save_file
+from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.appdirs import data_dir, log_dir
 from autotable.utils.fetcher import Fetcher
 
@@ -165,6 +167,38 @@ def doctor():
     except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Github resources")
         Console().print(f"Github error message: {error_msg}")
+
+
+@app.command()
+def migrate02to03(
+    repo: str = typer.Argument(..., help="仓库地址"),
+    token: str = typer.Option("", help="github token"),
+    issue_id: int = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
+    file_path: str = typer.Option(None, "-f", "--file", help="文件路径"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+):
+    """
+    迁移 v0.2.0->v0.3.0
+
+    可以使用在线 issue 或者本地文件(file_path)
+    """
+    assert issue_id is not None or file_path is not None
+    init_logger(log_level)
+    if issue_id is not None:
+        Fetcher.set_github(token)
+        Fetcher.set_repo(repo)
+        tracker_issues_data = get_issues(issue_id)
+    else:
+        assert file_path is not None
+        tracker_issues_data = TrackerIssuesData("local", Path(file_path).read_text(), None, None, repo)
+
+    new_issue = replacement_pr_url(tracker_issues_data)
+
+    save_file(
+        new_issue,
+        f"{tracker_issues_data.issue_title}_migrate.md",
+        dry_run=True,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
