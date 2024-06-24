@@ -13,5 +13,5 @@ CONSOLE_ERROR = "✗"
 
 
 # processor/github_prs cache
-globe_error_prs: set[PullRequest] = set()
-globe_pr_reviews_cache: dict[int, list[PullRequestReview]] = {}
+global_error_prs: set[PullRequest] = set()
+global_pr_reviews_cache: dict[int, list[PullRequestReview]] = {}
