@@ -9,6 +9,7 @@ from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
+from autotable.constant import globe_error_prs, globe_pr_reviews_cache
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import titleBase
 from autotable.processor.utils import update_table_people
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
     from github.PullRequest import PullRequest
     from github.PullRequestReview import PullRequestReview
 
-globe_error_prs: set[PullRequest] = set()
 
 """
 table.header:
@@ -84,9 +84,14 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
 
             # 只有 reviews 的状态是 APPROVED 才是需要判断的
             pr_reviews: list[PullRequestReview] = []
-            for x in pr.get_reviews():
-                if x.state == "APPROVED":
-                    pr_reviews.append(x)
+            # 如果没有缓存则获取
+            if pr.number not in globe_pr_reviews_cache:
+                for x in pr.get_reviews():
+                    if x.state == "APPROVED":
+                        pr_reviews.append(x)
+                globe_pr_reviews_cache[pr.number] = pr_reviews
+            else:
+                pr_reviews = globe_pr_reviews_cache[pr.number]
 
             # 确认状态, 当前行的状态, 第一位永远为状态位
             status: StatusType = pr_match_status(pr_state, pr_reviews, index)
