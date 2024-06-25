@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
 
 from autotable.api.prs import get_pr_list
 from autotable.processor.analysis import (
@@ -16,12 +15,9 @@ from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
 from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
+from autotable.storage_model.pull_data import PullRequestData
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.migrate import migrate_pr_url_02to03
-
-if TYPE_CHECKING:
-    from github.PaginatedList import PaginatedList
-    from github.PullRequest import PullRequest
 
 
 def backup(issue_title: str, issue_content: str) -> None:
@@ -67,24 +63,28 @@ def update_content(
     # 解析报名正则
     enter_re = analysis_enter(issue_content)
     # 获取pr列表
-    pr_data: PaginatedList[PullRequest] = get_pr_list(tracker_issues_data.issue_create_time, title_re)
+    pr_data: list[PullRequestData] = get_pr_list(tracker_issues_data.issue_create_time, title_re)
 
     # 大致思路为表格序号匹配标题序号
     for start_str, end_str in analysis_table_generator(issue_content):
         # 拆分markdown表格
         doc_table = analysis_table_content(issue_content, start_str, end_str)
         # 存储多个 repo 的 pr 数据
-        pr_data_list = [pr_data] if len(pr_data) != 0 else []  # type: ignore  # noqa: PGH003
+        pr_data_list = [pr_data] if len(pr_data) != 0 else []
 
         # 为当前表格单独解析 repo 地址
         doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
 
         # 如果repo地址不一致, 则重新获取pr列表
         if len(repo_list_) != 0:
-            for repo_ in repo_list_:
+            for repo_ in [
+                repo
+                for repo in repo_list_
+                if repo not in [pr[0].base_repo_full_name for pr in pr_data_list]  # 去重
+            ]:
                 pull_request_list = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
                 # 去除pr列表为空的repo
-                if len(pull_request_list) != 0:  # type: ignore  # noqa: PGH003
+                if len(pull_request_list) != 0:
                     pr_data_list.append(pull_request_list)
 
         # 解析表格
@@ -92,7 +92,7 @@ def update_content(
 
         # 修改表格内容, 根据多个repo的pr数据更新
         for pr_data_ in pr_data_list:
-            assert len(pr_data_) != 0  # type: ignore  # noqa: PGH003
+            assert len(pr_data_) != 0
             # 更新pr数据
             doc_table = update_pr_table(doc_table, title_re, pr_data_)
 

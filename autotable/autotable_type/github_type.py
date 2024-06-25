@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from autotable.autotable_type.autotable_type import StatusType
-
-if TYPE_CHECKING:
-    from github.PullRequest import PullRequest
+from autotable.storage_model.pull_data import PullRequestData
 
 
 class PrType(Enum):
@@ -26,7 +23,7 @@ class PrType(Enum):
                 raise NotImplementedError(f"pr to autotable StatusType {self} is not supported")
 
 
-def get_pr_type(pr: PullRequest) -> PrType:
+def get_pr_type(pr: PullRequestData) -> PrType:
     match pr.state:
         case "open":
             return PrType.OPEN
