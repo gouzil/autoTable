@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
 from loguru import logger
 from mistletoe.block_token import Table
@@ -9,16 +8,11 @@ from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
-from autotable.constant import global_error_prs, global_pr_reviews_cache
+from autotable.constant import global_error_prs, global_pr_reviews_cache, global_pr_title_index_cache
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import titleBase
 from autotable.processor.utils import update_table_people
-
-if TYPE_CHECKING:
-    from github.PaginatedList import PaginatedList
-    from github.PullRequest import PullRequest
-    from github.PullRequestReview import PullRequestReview
-
+from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 
 """
 table.header:
@@ -33,9 +27,9 @@ table.children:
 """
 
 
-def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]) -> Table:
+def update_pr_table(table: Table, title_re: str, prs: list[PullRequestData]) -> Table:
     # 记录已经关闭了的号码
-    close_prs: set[PullRequest] = set()
+    close_prs: set[PullRequestData] = set()
 
     for table_row in table.children:
         # 跳过已经删除的行
@@ -56,42 +50,49 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
                 close_prs.add(pr)
                 continue
 
-            # NOTE: 直接使用 match 会与 search 的不一致
-            pr_title = re.search(title_re, pr.title)
-            assert pr_title is not None
-            pr_indexs_re = re.match(title_re, pr_title.group())
+            if (
+                global_pr_title_index_cache.setdefault(pr.base_repo_full_name, {}) == {}
+                or pr.number not in global_pr_title_index_cache[pr.base_repo_full_name]
+            ):
+                # NOTE: 直接使用 match 会与 search 的不一致
+                pr_title = re.search(title_re, pr.title)
+                assert pr_title is not None
+                pr_indexs_re = re.match(title_re, pr_title.group())
 
-            if pr_indexs_re is None:
-                if pr not in global_error_prs:
-                    global_error_prs.add(pr)
-                    logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
-                continue
+                if pr_indexs_re is None:
+                    if pr not in global_error_prs.setdefault(pr.base_repo_full_name, set()):
+                        global_error_prs[pr.base_repo_full_name].add(pr)
+                        logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
+                    continue
 
-            pr_indexs_text = pr_indexs_re.group("task_id")
+                pr_indexs_text = pr_indexs_re.group("task_id")
 
-            # 防止一些不是序号的标题
-            try:
-                pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
-            except RuntimeError:
-                if pr not in global_error_prs:
-                    global_error_prs.add(pr)
-                    logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
-                continue
+                # 防止一些不是序号的标题
+                try:
+                    pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
+                except RuntimeError:
+                    if pr not in global_error_prs.setdefault(pr.base_repo_full_name, set()):
+                        global_error_prs[pr.base_repo_full_name].add(pr)
+                        logger.warning(f"{pr.number} Parsing title error, title: {pr.title}")
+                    continue
+                global_pr_title_index_cache[pr.base_repo_full_name][pr.number] = pr_index_list
+            else:
+                pr_index_list = global_pr_title_index_cache[pr.base_repo_full_name][pr.number]
 
             # 如果与序号不匹配跳过
             if index[1:] not in pr_index_list:
                 continue
 
             # 只有 reviews 的状态是 APPROVED 才是需要判断的
-            pr_reviews: list[PullRequestReview] = []
+            pr_reviews: list[PullReviewData] = []
             # 如果没有缓存则获取
-            if pr.number not in global_pr_reviews_cache:
+            if pr.number not in global_pr_reviews_cache.setdefault(pr.base_repo_full_name, {}):
                 for x in pr.get_reviews():
                     if x.state == "APPROVED":
                         pr_reviews.append(x)
-                global_pr_reviews_cache[pr.number] = pr_reviews
+                global_pr_reviews_cache[pr.base_repo_full_name][pr.number] = pr_reviews
             else:
-                pr_reviews = global_pr_reviews_cache[pr.number]
+                pr_reviews = global_pr_reviews_cache[pr.base_repo_full_name][pr.number]
 
             # 确认状态, 当前行的状态, 第一位永远为状态位
             status: StatusType = pr_match_status(pr_state, pr_reviews, index)
@@ -111,13 +112,13 @@ def update_pr_table(table: Table, title_re: str, prs: PaginatedList[PullRequest]
                 table_row.children[-2].children.append(RawText(""))
 
             table_row.children[-2].children[0].content = update_table_people(
-                status, pr.user.login, table_row.children[-2].children[0].content
+                status, pr.user_login, table_row.children[-2].children[0].content
             )
 
     return table
 
 
-def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table_content: str) -> StatusType:
+def pr_match_status(pr_state: PrType, pr_reviews: list[PullReviewData], table_content: str) -> StatusType:
     """
     匹配pr类型到表格状态
 
@@ -154,10 +155,10 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullRequestReview], table
     return res_type
 
 
-def update_pr_url(table_row: str, pr: PullRequest, close_prs: set[PullRequest]) -> str:
+def update_pr_url(table_row: str, pr: PullRequestData, close_prs: set[PullRequestData]) -> str:
     """更新 pr 号, 倒数第一列为 pr 号列, 根据是否为其他仓库决定是否使用 http 链接"""
     table_pr_num: str = ""
-    pr_table_list = [f"{pr.base.repo.full_name}#{pr.number}"]
+    pr_table_list = [f"{pr.base_repo_full_name}#{pr.number}"]
     pr_table_list.extend(analysis_table_more_people(table_row))
     pr_table_list = list(set(pr_table_list))
     if len(pr_table_list) == 1:
@@ -165,7 +166,7 @@ def update_pr_url(table_row: str, pr: PullRequest, close_prs: set[PullRequest]) 
     else:
         for pr_table in pr_table_list:
             # 不生成关闭的pr
-            if pr_table in [f"{x.base.repo.full_name}#{x.number}" for x in close_prs]:
+            if pr_table in [f"{x.base_repo_full_name}#{x.number}" for x in close_prs]:
                 continue
             table_pr_num += f"{pr_table}<br/>"
 
