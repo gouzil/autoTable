@@ -31,7 +31,7 @@ class PullReviewData:
     state: str
     body: str
     user_login: str
-    # origin_data: PullRequest  # 原始pygithub数据
+    # origin_data: PullRequestReview  # 原始pygithub数据
 
     def __hash__(self) -> int:
         return hash(self.commit_id) + hash(self.state)
