@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import re
 
-from github.IssueComment import IssueComment
-from github.PaginatedList import PaginatedList
 from loguru import logger
 from mistletoe.block_token import Table
 from mistletoe.span_token import RawText, Strikethrough
@@ -11,9 +9,10 @@ from mistletoe.span_token import RawText, Strikethrough
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.github_title import titleBase
 from autotable.processor.utils import update_table_people
+from autotable.storage_model.tracker_issues_data import IssuesCommentData
 
 
-def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment], enter_re: str) -> Table:
+def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], enter_re: str) -> Table:
     for table_row in table.children:
         if isinstance(table_row.children[0].children[0], Strikethrough):
             assert isinstance(table_row.children[0].children[0].children[0].content[0], str)
@@ -52,7 +51,7 @@ def update_issue_table(table: Table, issue_comments: PaginatedList[IssueComment]
                 table_row.children[-2].children.append(RawText(""))
 
             table_row.children[-2].children[0].content = update_table_people(
-                StatusType.CLAIMED, issue.user.login, table_row.children[-2].children[0].content
+                StatusType.CLAIMED, issue.user_login, table_row.children[-2].children[0].content
             )
 
     return table
