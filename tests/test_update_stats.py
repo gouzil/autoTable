@@ -23,6 +23,7 @@ def test_update_stats_data():
 
     # 重置
     TableStatistics.status = {StatusKey: 0 for StatusKey in StatusType}
+    TableStatistics.all_merge = {}
 
     update_stats_data(content2Table(doc_table_content))
     assert TableStatistics.all_merge["gouzil"] == 2
@@ -41,6 +42,8 @@ def test_update_stats_table():
 """
     # 重置
     TableStatistics.status = {StatusKey: 0 for StatusKey in StatusType}
+    TableStatistics.all_merge = {}
+
     TableStatistics.status[StatusType.CLAIMED] = 0
     TableStatistics.status[StatusType.NEXT_STAGE] = 1
     TableStatistics.status[StatusType.REPAIRING] = 3
