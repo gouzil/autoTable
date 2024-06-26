@@ -108,3 +108,9 @@ def test_analysis_repo():
     analysis_res = analysis_repo(issue_content_, test_repo)
     assert analysis_res[0] == repos_issue_
     assert analysis_res[1] == [repo, test_repo] or analysis_res[1] == [test_repo, repo]
+
+    try:
+        analysis_repo(issue_content, "")
+        raise AssertionError()
+    except RuntimeError as e:
+        assert str(e) == "repo format error: "

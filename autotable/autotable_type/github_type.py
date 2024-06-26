@@ -19,8 +19,6 @@ class PrType(Enum):
                 return StatusType.COMPLETED
             case PrType.CLOSED:
                 return StatusType.PENDING
-            case _:
-                raise NotImplementedError(f"pr to autotable StatusType {self} is not supported")
 
 
 def get_pr_type(pr: PullRequestData) -> PrType:

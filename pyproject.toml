@@ -66,7 +66,7 @@ include = ["autotable"]
 [tool.pdm]
 distribution = true
 [tool.pdm.build]
-excludes = ["./**/.git"]
+excludes = ["./**/.git", "./**/.DS_Store"]
 includes = ["autotable"]
 
 [tool.pdm.scripts]
