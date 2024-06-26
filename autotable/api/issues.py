@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from autotable.storage_model.tracker_issues_data import TrackerIssuesData
+from autotable.storage_model.tracker_issues_data import IssuesCommentData, TrackerIssuesData
 from autotable.utils.fetcher import Fetcher
 
 
@@ -20,10 +20,15 @@ def get_issues(
     assert isinstance(issue.title, str)
     assert isinstance(issue.body, str)
     assert isinstance(issue.created_at, datetime)
+
+    issue_comments = [
+        IssuesCommentData(comment.id, comment.body, comment.url, comment.user.login) for comment in issue.get_comments()
+    ]
+
     return TrackerIssuesData(
         issue_title=issue.title,
         issue_content=issue.body,
         issue_create_time=issue.created_at,
-        issue_comments=issue.get_comments(),
+        issue_comments=issue_comments,
         repo=issue.repository.full_name,
     )
