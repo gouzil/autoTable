@@ -23,7 +23,7 @@ class Fetcher:
                 auth=TokenAuthStrategy(token),
                 auto_retry=RetryChainDecision(RETRY_RATE_LIMIT, RETRY_SERVER_ERROR),
                 http_cache=True,
-            )  # 最大直接设置到100最大值
+            )
 
     @classmethod
     def get_github(cls) -> GitHub:
