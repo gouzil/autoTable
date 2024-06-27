@@ -33,6 +33,8 @@ class Fetcher:
     @classmethod
     def set_repo(cls, repo: str) -> None:
         cls.repo = repo
+        if cls.owner is not None:
+            cls.check_owner_repo()
 
     @classmethod
     def get_repo(cls) -> str:
@@ -42,6 +44,8 @@ class Fetcher:
     @classmethod
     def set_owner(cls, owner: str) -> None:
         cls.owner = owner
+        if cls.repo is not None:
+            cls.check_owner_repo()
 
     @classmethod
     def get_owner(cls) -> str:
@@ -54,6 +58,13 @@ class Fetcher:
         assert len(res) == 2
         cls.owner = res[0]
         cls.repo = res[1]
+        cls.check_owner_repo()
+
+    @classmethod
+    def get_owner_repo(cls) -> str:
+        assert cls.owner is not None
+        assert cls.repo is not None
+        return cls.owner + "/" + cls.repo
 
     @classmethod
     def get_issue(cls, issues_id: int) -> Issue:
@@ -65,3 +76,12 @@ class Fetcher:
         assert cls.gh is not None
         assert cls.repo is not None
         cls.gh.rest.issues.update(cls.get_owner(), cls.get_repo(), issues_id, body=issue_content)
+
+    # 所有的 set repo 都应该使用这个函数, 防止大小写问题
+    @classmethod
+    def check_owner_repo(cls):
+        assert cls.owner is not None and cls.repo is not None
+        assert cls.gh is not None
+        res = cls.gh.rest.repos.get(cls.owner, cls.repo).parsed_data
+        cls.owner = res.owner.login
+        cls.repo = res.name

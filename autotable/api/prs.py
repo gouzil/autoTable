@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import re
 from contextlib import contextmanager
 from datetime import datetime
 
+from githubkit.versions.latest.models import IssueSearchResultItem
 from loguru import logger
 
 from autotable.storage_model.pull_data import PullRequestData, PullReviewData
@@ -23,51 +25,94 @@ def get_pr_list(start_time: datetime, title_re: str, repo: str = "") -> list[Pul
     return res[::-1]
 
 
-async def _request_pull_list_data(start_time: datetime, title_re: str):
+async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[PullRequestData]:
     """
     异步获取pull request列表, 并筛选出符合条件的pull request
     """
     res: list[PullRequestData] = []
-    async for pr in Fetcher.get_github().paginate(
-        Fetcher.get_github().rest.pulls.async_list,
-        owner=Fetcher.get_owner(),
-        repo=Fetcher.get_repo(),
-        state="all",
-        sort="created",
-        direction="desc",
-        per_page=100,
-    ):
-        if not pr.created_at > start_time:
-            logger.debug(f"end request pr number: {pr.number}")
-            break
+    search_res = (
+        Fetcher.get_github()
+        .rest.search.issues_and_pull_requests(
+            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>{start_time.strftime("%Y-%m-%d")}",
+            sort="created",
+            order="desc",
+            per_page=100,
+        )
+        .parsed_data
+    )
+
+    # 创建并行列表
+    search_res_items: list[IssueSearchResultItem] = search_res.items
+    pr_tasks = []
+    for page in range(2, math.ceil(search_res.total_count / 100)):
+        pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, start_time)))
+
+    for pr_results in await asyncio.gather(*pr_tasks):
+        search_res_items.extend(pr_results)
+
+    # 临时存放需要的 pr, 的下标
+    tmp_pr_index_list = []
+    for index, pr in enumerate(search_res_items):
         # 如果正则匹配上了就会加入队列
         if re.search(title_re, pr.title):
-            reviews_data: list[PullReviewData] = []
-            # 获取评论
-            async for review in Fetcher.get_github().paginate(
-                Fetcher.get_github().rest.pulls.async_list_reviews,
-                pull_number=pr.number,
-                owner=pr.base.repo.owner.login,
-                repo=pr.base.repo.name,
-            ):
-                assert review.commit_id is not None
-                assert review.user is not None
-                reviews_data.append(PullReviewData(review.commit_id, review.state, review.body, review.user.login))
+            tmp_pr_index_list.append(index)
 
-            assert pr.user is not None
-            res.append(
-                PullRequestData(
-                    pr.number,
-                    pr.title,
-                    pr.base.repo.full_name,
-                    pr.user.login,
-                    pr.state,
-                    pr.merged_at is not None,
-                    reviews_data,
-                )
+    # 获取评论
+    pr_review_tasks = []
+    pr_reviews = {}
+    for index in tmp_pr_index_list:
+        pr_review_tasks.append(asyncio.create_task(_get_reviews(search_res_items[index].number)))
+
+    # 把所有评论插入到一个大的字典中
+    pr_reviews_results = await asyncio.gather(*pr_review_tasks)
+    for review in pr_reviews_results:
+        pr_reviews.update(review)
+
+    for index in tmp_pr_index_list:
+        pr: IssueSearchResultItem = search_res_items[index]
+
+        assert pr.user is not None
+        assert pr.pull_request is not None
+
+        res.append(
+            PullRequestData(
+                pr.number,
+                pr.title,
+                Fetcher.get_owner_repo(),
+                pr.user.login,
+                pr.state,
+                pr.pull_request.merged_at is not None,
+                pr_reviews[pr.number],
             )
+        )
 
     return res
+
+
+async def _next_page_search_pr(page: int, start_time: datetime) -> list[IssueSearchResultItem]:
+    search_res = await Fetcher.get_github().rest.search.async_issues_and_pull_requests(
+        q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>{start_time.strftime("%Y-%m-%d")}",
+        sort="created",
+        order="desc",
+        page=page,
+        per_page=100,
+    )
+    return search_res.parsed_data.items
+
+
+async def _get_reviews(pr_number: int) -> dict[int, list[PullReviewData]]:
+    reviews_data: list[PullReviewData] = []
+    # 获取评论
+    async for review in Fetcher.get_github().paginate(
+        Fetcher.get_github().rest.pulls.async_list_reviews,
+        pull_number=pr_number,
+        owner=Fetcher.get_owner(),
+        repo=Fetcher.get_repo(),
+    ):
+        assert review.commit_id is not None
+        assert review.user is not None
+        reviews_data.append(PullReviewData(review.commit_id, review.state, review.body, review.user.login))
+    return {pr_number: reviews_data}
 
 
 @contextmanager

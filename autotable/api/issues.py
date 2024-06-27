@@ -29,7 +29,7 @@ def get_issues(
         issue_content=issue.body,
         issue_create_time=issue.created_at,
         issue_comments=issue_comments,
-        owner_repo=Fetcher.get_owner() + "/" + Fetcher.get_repo(),
+        owner_repo=Fetcher.get_owner_repo(),
     )
 
 
