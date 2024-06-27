@@ -30,6 +30,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     异步获取pull request列表, 并筛选出符合条件的pull request
     """
     res: list[PullRequestData] = []
+    sem = asyncio.Semaphore(10)  # 限制并发数
     search_res = (
         Fetcher.get_github()
         .rest.search.issues_and_pull_requests(
@@ -45,7 +46,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     search_res_items: list[IssueSearchResultItem] = search_res.items
     pr_tasks = []
     for page in range(2, math.ceil(search_res.total_count / 100)):
-        pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, start_time)))
+        pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, start_time, sem)))
 
     for pr_results in await asyncio.gather(*pr_tasks):
         search_res_items.extend(pr_results)
@@ -61,7 +62,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     pr_review_tasks = []
     pr_reviews = {}
     for index in tmp_pr_index_list:
-        pr_review_tasks.append(asyncio.create_task(_get_reviews(search_res_items[index].number)))
+        pr_review_tasks.append(asyncio.create_task(_get_reviews(search_res_items[index].number, sem)))
 
     # 把所有评论插入到一个大的字典中
     pr_reviews_results = await asyncio.gather(*pr_review_tasks)
@@ -89,30 +90,32 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     return res
 
 
-async def _next_page_search_pr(page: int, start_time: datetime) -> list[IssueSearchResultItem]:
-    search_res = await Fetcher.get_github().rest.search.async_issues_and_pull_requests(
-        q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>" + start_time.strftime("%Y-%m-%d"),
-        sort="created",
-        order="desc",
-        page=page,
-        per_page=100,
-    )
-    return search_res.parsed_data.items
+async def _next_page_search_pr(page: int, start_time: datetime, sem) -> list[IssueSearchResultItem]:
+    async with sem:
+        search_res = await Fetcher.get_github().rest.search.async_issues_and_pull_requests(
+            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>" + start_time.strftime("%Y-%m-%d"),
+            sort="created",
+            order="desc",
+            page=page,
+            per_page=100,
+        )
+        return search_res.parsed_data.items
 
 
-async def _get_reviews(pr_number: int) -> dict[int, list[PullReviewData]]:
-    reviews_data: list[PullReviewData] = []
-    # 获取评论
-    async for review in Fetcher.get_github().paginate(
-        Fetcher.get_github().rest.pulls.async_list_reviews,
-        pull_number=pr_number,
-        owner=Fetcher.get_owner(),
-        repo=Fetcher.get_repo(),
-    ):
-        assert review.commit_id is not None
-        assert review.user is not None
-        reviews_data.append(PullReviewData(review.commit_id, review.state, review.body, review.user.login))
-    return {pr_number: reviews_data}
+async def _get_reviews(pr_number: int, sem) -> dict[int, list[PullReviewData]]:
+    async with sem:
+        reviews_data: list[PullReviewData] = []
+        # 获取评论
+        async for review in Fetcher.get_github().paginate(
+            Fetcher.get_github().rest.pulls.async_list_reviews,
+            pull_number=pr_number,
+            owner=Fetcher.get_owner(),
+            repo=Fetcher.get_repo(),
+        ):
+            assert review.commit_id is not None
+            assert review.user is not None
+            reviews_data.append(PullReviewData(review.commit_id, review.state, review.body, review.user.login))
+        return {pr_number: reviews_data}
 
 
 @contextmanager
