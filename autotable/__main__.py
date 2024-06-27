@@ -38,7 +38,7 @@ def init_logger(log_level: str):
 
 
 def init(
-    repo: str,
+    owner_repo: str,
     token: str,
     log_level: str = "INFO",
 ) -> None:
@@ -47,12 +47,12 @@ def init(
     """
     init_logger(log_level)
     Fetcher.set_github(token)
-    Fetcher.set_repo(repo)
+    Fetcher.set_owner_repo(owner_repo)
 
 
 @app.command()
 def issue_update(
-    repo: str = typer.Argument(..., help="仓库地址"),
+    owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
     token: str = typer.Argument(..., help="github token"),
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
@@ -62,7 +62,7 @@ def issue_update(
     """
     更新 issue 内容
     """
-    init(repo, token, log_level)
+    init(owner_repo, token, log_level)
     # 获取issue内容
     tracker_issues_data = get_issues(issue_id)
     new_issue: str = update_content(
@@ -76,7 +76,7 @@ def issue_update(
 
 @app.command()
 def issue_update_stats(
-    repo: str = typer.Argument(..., help="仓库地址"),
+    owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
     token: str = typer.Argument(..., help="github token"),
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
@@ -86,7 +86,7 @@ def issue_update_stats(
     """
     仅更新 issue 任务统计
     """
-    init(repo, token, log_level)
+    init(owner_repo, token, log_level)
     tracker_issues_data = get_issues(issue_id)
     new_issue: str = update_stats(tracker_issues_data.issue_title, tracker_issues_data.issue_content, dry_run)
     if overwrite_remote and not dry_run:
@@ -96,7 +96,7 @@ def issue_update_stats(
 
 @app.command()
 def issue_backup(
-    repo: str = typer.Argument(..., help="仓库地址"),
+    owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
     token: str = typer.Argument(..., help="github token"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
@@ -104,7 +104,7 @@ def issue_backup(
     """
     备份 issue
     """
-    init(repo, token, log_level)
+    init(owner_repo, token, log_level)
     tracker_issues_data = get_issues(issue_id)
     backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
 
@@ -171,7 +171,7 @@ def doctor():
 
 @app.command()
 def migrate02to03(
-    repo: str = typer.Argument(..., help="仓库地址"),
+    owner_repo: str = typer.Argument(..., help="仓库地址"),
     token: str = typer.Option("", help="github token"),
     issue_id: int = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
     file_path: str = typer.Option(None, "-f", "--file", help="文件路径"),
@@ -186,11 +186,13 @@ def migrate02to03(
     init_logger(log_level)
     if issue_id is not None:
         Fetcher.set_github(token)
-        Fetcher.set_repo(repo)
+        Fetcher.set_repo(owner_repo)
         tracker_issues_data = get_issues(issue_id)
     else:
         assert file_path is not None
-        tracker_issues_data = TrackerIssuesData("local", Path(file_path).read_text(), None, None, repo)
+        tracker_issues_data = TrackerIssuesData(
+            "local", Path(file_path).read_text(encoding="utf-8"), None, None, owner_repo
+        )
 
     new_issue = replacement_pr_url(tracker_issues_data)
 

@@ -73,7 +73,7 @@ def update_content(
         pr_data_list = [pr_data] if len(pr_data) != 0 else []
 
         # 为当前表格单独解析 repo 地址
-        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
+        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.owner_repo)
 
         # 如果repo地址不一致, 则重新获取pr列表
         if len(repo_list_) != 0:
@@ -155,12 +155,12 @@ def replacement_pr_url(tracker_issues_data: TrackerIssuesData) -> str:
         doc_table = analysis_table_content(issue_content, start_str, end_str)
 
         # 为当前表格单独解析 repo 地址
-        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.repo)
+        doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.owner_repo)
 
         # 解析表格
         doc_table = content2Table(doc_table)
 
-        doc_table = migrate_pr_url_02to03(doc_table, tracker_issues_data.repo)
+        doc_table = migrate_pr_url_02to03(doc_table, tracker_issues_data.owner_repo)
 
         # 转换ast到md
         doc_md = to_markdown(doc_table)

@@ -10,10 +10,10 @@ class TrackerIssuesData:
     issue_content: str
     issue_create_time: datetime | None
     issue_comments: list[IssuesCommentData] | None
-    repo: str
+    owner_repo: str
 
     def __hash__(self) -> int:
-        return hash(self.issue_title) + hash(self.issue_create_time) + hash(self.repo)
+        return hash(self.issue_title) + hash(self.issue_create_time) + hash(self.owner_repo)
 
 
 @dataclass(frozen=True)
