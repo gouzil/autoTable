@@ -125,6 +125,11 @@ autotable doctor
 <!--table_end="A"-->
 ```
 
+* 自定义 pull 搜索开始时间
+```md
+<!--start_pull_time="2024-6-27"-->
+```
+
 ### 适用于 PR 内，在 APPROVED 时添加
 
 * 根据`bot_next`内的任务序号去改变状态为🟡

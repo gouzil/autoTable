@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 
 from autotable.storage_model.tracker_issues_data import IssuesCommentData, TrackerIssuesData
@@ -21,14 +22,33 @@ def get_issues(
     assert isinstance(issue.body, str)
     assert isinstance(issue.created_at, datetime)
 
-    issue_comments = [
-        IssuesCommentData(comment.id, comment.body, comment.url, comment.user.login) for comment in issue.get_comments()
-    ]
+    issue_comments = asyncio.run(_get_issue_comments(issues_id))
 
     return TrackerIssuesData(
         issue_title=issue.title,
         issue_content=issue.body,
         issue_create_time=issue.created_at,
         issue_comments=issue_comments,
-        repo=issue.repository.full_name,
+        owner_repo=Fetcher.get_owner_repo(),
     )
+
+
+async def _get_issue_comments(
+    issues_id: int,
+) -> list[IssuesCommentData]:
+    """
+    获取issue评论
+    """
+
+    issue_comments: list[IssuesCommentData] = []
+
+    async for comment in Fetcher.get_github().paginate(
+        Fetcher.get_github().rest.issues.async_list_comments,
+        owner=Fetcher.get_owner(),
+        repo=Fetcher.get_repo(),
+        issue_number=issues_id,
+        per_page=100,
+    ):
+        assert comment.user is not None
+        issue_comments.append(IssuesCommentData(comment.id, comment.body, comment.url, comment.user.login))
+    return issue_comments
