@@ -24,7 +24,7 @@ def content2Table(content: str) -> Table:
     return doc.children[0]
 
 
-# 解析任务列表markdown中任务的标题 暂停音乐
+# 解析任务列表markdown中任务的标题
 def analysis_title(content: str) -> str:
     """
     解析pr开头标题, 这里返回的应该是正则表达式
@@ -118,3 +118,18 @@ def analysis_repo(issue_content: str, repo: str) -> tuple[str, list[str]]:
     res_repo = list(set(res_repo))
 
     return issue_content.replace(f"{repo_start}{repo_text_list.group(1)}{repo_end}", ""), res_repo
+
+
+def analysis_pull_start_time(issue_content: str) -> str:
+    """
+    解析pull开始时间
+
+    <!--start_pull_time=""-->
+    """
+    start_time_start = '<!--start_pull_time="'
+    start_time_end = '"-->'
+    if start_time_start not in issue_content:
+        return ""
+
+    content = issue_content[issue_content.find(start_time_start) + len(start_time_start) :]
+    return content[: content.find(start_time_end)]

@@ -120,10 +120,8 @@ def _temp_set_owner_repo(owner_repo: str):
     """
     用于临时请求其他repo
     """
-    old_owner = Fetcher.get_owner()
-    old_repo = Fetcher.get_repo()
+    old_owner_repo = Fetcher.get_owner_repo()
     if owner_repo != "":
         Fetcher.set_owner_repo(owner_repo)
     yield
-    Fetcher.set_owner(old_owner)
-    Fetcher.set_repo(old_repo)
+    Fetcher.set_owner_repo(old_owner_repo)

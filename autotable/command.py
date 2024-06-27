@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime
 
 from autotable.api.prs import get_pr_list
 from autotable.processor.analysis import (
     analysis_enter,
+    analysis_pull_start_time,
     analysis_repo,
     analysis_table_content,
     analysis_table_generator,
@@ -62,8 +64,15 @@ def update_content(
     title_re = analysis_title(issue_content)
     # 解析报名正则
     enter_re = analysis_enter(issue_content)
+    # 解析pr开始搜索时间
+    pull_start_time = analysis_pull_start_time(issue_content)
+    if pull_start_time == "":
+        pull_start_time = tracker_issues_data.issue_create_time
+    else:
+        pull_start_time = datetime.strptime(pull_start_time, "%Y-%m-%d")
+
     # 获取pr列表
-    pr_data: list[PullRequestData] = get_pr_list(tracker_issues_data.issue_create_time, title_re)
+    pr_data: list[PullRequestData] = get_pr_list(pull_start_time, title_re)
 
     # 大致思路为表格序号匹配标题序号
     for start_str, end_str in analysis_table_generator(issue_content):
@@ -82,7 +91,7 @@ def update_content(
                 for repo in repo_list_
                 if repo not in [pr[0].base_repo_full_name for pr in pr_data_list]  # 去重
             ]:
-                pull_request_list = get_pr_list(tracker_issues_data.issue_create_time, title_re, repo_)
+                pull_request_list = get_pr_list(pull_start_time, title_re, repo_)
                 # 去除pr列表为空的repo
                 if len(pull_request_list) != 0:
                     pr_data_list.append(pull_request_list)

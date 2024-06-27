@@ -14,12 +14,14 @@ class Fetcher:
     def set_github(cls, token: str) -> None:
         if token == "":
             cls.gh = GitHub(
+                accept_format="application/json",
                 auth=UnauthAuthStrategy(),
                 auto_retry=RetryChainDecision(RETRY_RATE_LIMIT, RETRY_SERVER_ERROR),
                 http_cache=True,
             )
         else:
             cls.gh = GitHub(
+                accept_format="application/json",
                 auth=TokenAuthStrategy(token),
                 auto_retry=RetryChainDecision(RETRY_RATE_LIMIT, RETRY_SERVER_ERROR),
                 http_cache=True,
@@ -33,8 +35,6 @@ class Fetcher:
     @classmethod
     def set_repo(cls, repo: str) -> None:
         cls.repo = repo
-        if cls.owner is not None:
-            cls.check_owner_repo()
 
     @classmethod
     def get_repo(cls) -> str:
@@ -44,8 +44,6 @@ class Fetcher:
     @classmethod
     def set_owner(cls, owner: str) -> None:
         cls.owner = owner
-        if cls.repo is not None:
-            cls.check_owner_repo()
 
     @classmethod
     def get_owner(cls) -> str:

@@ -4,6 +4,7 @@ from mistletoe.block_token import Table
 
 from autotable.processor.analysis import (
     analysis_enter,
+    analysis_pull_start_time,
     analysis_repo,
     analysis_review,
     analysis_table_content,
@@ -19,6 +20,12 @@ def test_analysis_title():
     "测试解析任务标题正则"
     title = r'<!--title_name="\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"-->'
     assert analysis_title(title) == r"\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"
+
+
+def test_analysis_pull_start_time():
+    "解析 pr 开始时间"
+    start_time = '<!--start_pull_time="2023-1-2"-->'
+    assert analysis_pull_start_time(start_time) == "2023-1-2"
 
 
 def test_analysis_table_content():
