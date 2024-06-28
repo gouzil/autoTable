@@ -45,7 +45,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     # 创建并行列表
     search_res_items: list[IssueSearchResultItem] = search_res.items
     pr_tasks = []
-    for page in range(2, math.ceil(search_res.total_count / 100)):
+    for page in range(2, math.ceil(search_res.total_count / 100) + 1):
         pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, start_time, sem)))
 
     for pr_results in await asyncio.gather(*pr_tasks):

@@ -101,7 +101,7 @@ def analysis_repo(issue_content: str, repo: str) -> tuple[str, list[str]]:
 
     <!--repo=""-->
     """
-    if r"/" not in repo:
+    if "/" not in repo:
         logger.error("please check repo")
         raise RuntimeError(f"repo format error: {repo}")
 

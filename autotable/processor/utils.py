@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from mistletoe.block_token import Table
+from mistletoe.span_token import RawText, Strikethrough
+
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.analysis import analysis_table_more_people
 from autotable.storage_model.table import TablePeople
@@ -44,3 +47,31 @@ def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePe
             res.append(people)
 
     return res
+
+
+def clean_table_people(table: Table) -> Table:
+    for table_row in table.children:
+        # 跳过已经删除的行
+        if isinstance(table_row.children[0].children[0], Strikethrough):
+            continue
+
+        assert isinstance(table_row.children[0].children[0], RawText)
+        assert isinstance(table_row.children[0].children[0].content, str)
+        assert not table_row.children[0].children[0].content.startswith("~")
+        index: str = table_row.children[0].children[0].content
+
+        status_type_list = [t.value for t in StatusType]
+
+        for t in status_type_list:
+            if index.startswith(t):
+                table_row.children[0].children[0].content = f"{StatusType.PENDING.value}{index[len(t) :]}"
+                break
+        else:
+            table_row.children[0].children[0].content = f"{StatusType.PENDING.value}{index}"
+
+        if len(table_row.children[-2].children) != 0:
+            table_row.children[-2].children[0].content = ""
+        if len(table_row.children[-1].children) != 0:
+            table_row.children[-1].children[0].content = ""
+
+    return table

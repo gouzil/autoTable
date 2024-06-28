@@ -11,7 +11,7 @@ from rich.logging import RichHandler
 from rich.style import Style
 
 from autotable.api.issues import get_issues
-from autotable.command import backup, replacement_pr_url, update_content, update_stats
+from autotable.command import backup, init_issue_table, replacement_pr_url, update_content, update_stats
 from autotable.constant import CONSOLE_ERROR, CONSOLE_SUCCESSFUL
 from autotable.processor.file import save_file
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
@@ -51,12 +51,46 @@ def init(
 
 
 @app.command()
+def init_issue(
+    owner_repo: str = typer.Argument("", help="仓库地址"),
+    token: str = typer.Option("", help="github token"),
+    issue_id: int = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
+    file_path: str = typer.Option(None, "-f", "--file", help="文件路径"),
+    log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+):
+    """
+    初始化 issue 任务表格, 暂不支持统计表格的初始化
+    """
+    assert issue_id is not None or file_path is not None
+    init_logger(log_level)
+    if issue_id is not None:
+        assert owner_repo is not None
+        Fetcher.set_github(token)
+        Fetcher.set_owner_repo(owner_repo)
+        tracker_issues_data = get_issues(issue_id)
+    else:
+        assert file_path is not None
+        tracker_issues_data = TrackerIssuesData(
+            "local", Path(file_path).read_text(encoding="utf-8"), None, None, owner_repo
+        )
+    new_issue = init_issue_table(tracker_issues_data)
+    save_file(
+        new_issue,
+        f"{tracker_issues_data.issue_title}_init_issue.md",
+        dry_run=True,
+    )
+
+
+@app.command()
 def issue_update(
     owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
     token: str = typer.Argument(..., help="github token"),
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
     dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
+    reset_table: bool = typer.Option(
+        True, help="重置表格数据, 次模式会删除表格内所有任务状态, 并重新统计. NOTE: 手动修改表格数据将会丢失"
+    ),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
     """
@@ -68,6 +102,7 @@ def issue_update(
     new_issue: str = update_content(
         tracker_issues_data,
         dry_run,
+        reset_table,
     )
     if overwrite_remote and not dry_run:
         backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
@@ -161,7 +196,7 @@ def doctor():
     # check github
     try:
         Fetcher.set_github("")
-        Fetcher.set_repo("gouzil/autoTable")
+        Fetcher.set_owner_repo("gouzil/autoTable")
         Fetcher.get_issue(10).body  # noqa: B018
         Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Github resources")
     except Exception as error_msg:
@@ -186,7 +221,7 @@ def migrate02to03(
     init_logger(log_level)
     if issue_id is not None:
         Fetcher.set_github(token)
-        Fetcher.set_repo(owner_repo)
+        Fetcher.set_owner_repo(owner_repo)
         tracker_issues_data = get_issues(issue_id)
     else:
         assert file_path is not None
