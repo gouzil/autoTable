@@ -34,7 +34,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     search_res = (
         Fetcher.get_github()
         .rest.search.issues_and_pull_requests(
-            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>" + start_time.strftime("%Y-%m-%d"),
+            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>=" + start_time.strftime("%Y-%m-%d"),
             sort="created",
             order="desc",
             per_page=100,
@@ -93,7 +93,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
 async def _next_page_search_pr(page: int, start_time: datetime, sem) -> list[IssueSearchResultItem]:
     async with sem:
         search_res = await Fetcher.get_github().rest.search.async_issues_and_pull_requests(
-            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>" + start_time.strftime("%Y-%m-%d"),
+            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>=" + start_time.strftime("%Y-%m-%d"),
             sort="created",
             order="desc",
             page=page,
