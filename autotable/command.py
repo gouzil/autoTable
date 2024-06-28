@@ -102,7 +102,6 @@ def update_content(
         doc_table = content2Table(doc_table)
 
         if reset_table:
-            breakpoint()
             # 重置表格内的所有数据
             doc_table = clean_table_people(doc_table)
 
