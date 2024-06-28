@@ -1,14 +1,15 @@
 {
-  "extends": ["config:base", "group:allNonMajor"],
-  "labels": ["dependencies", "renovate"],
-  "pin": true,
-  "commitMessagePrefix": "⬆️ deps: ",
-  "dependencyDashboardTitle": "☑️ Dependency Dashboard",
-  "packageRules": [
+  extends: ["config:base", "schedule:daily", "group:allNonMajor"],
+  labels: ["dependencies", "renovate"],
+  pin: true,
+  commitMessagePrefix: "⬆️ deps: ",
+  dependencyDashboardTitle: "☑️ Dependency Dashboard",
+  packageRules: [
     {
-      "groupName": "dependencies (non-major)",
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": false
-    }
-  ]
+      groupName: "dependencies (non-major)",
+      matchUpdateTypes: ["minor", "patch", "pin", "digest"],
+      automerge: false,
+      automergeStrategy: "squash",
+    },
+  ],
 }
