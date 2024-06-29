@@ -19,13 +19,10 @@ class titleBase:
         continuous_index = self.title_content.find("-")
         if continuous_index == -1:
             return False
-        if (
+        return not (
             self.title_content[continuous_index - 1 : continuous_index].isdigit()
             and self.title_content[continuous_index + 1 : continuous_index + 2].isdigit()
-        ):
-            return False
-
-        return True
+        )
 
     # 模式分发器
     def distribution_parser(self) -> titleBase:
