@@ -17,6 +17,7 @@ from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.processor.github_prs import update_pr_table
 from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
+from autotable.processor.utils import clean_table_people
 from autotable.storage_model.pull_data import PullRequestData
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.migrate import migrate_pr_url_02to03
@@ -54,6 +55,7 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
 def update_content(
     tracker_issues_data: TrackerIssuesData,
     dry_run: bool,
+    reset_table: bool,
 ) -> str:
     assert tracker_issues_data.issue_create_time is not None
     assert tracker_issues_data.issue_comments is not None
@@ -98,6 +100,10 @@ def update_content(
 
         # 解析表格
         doc_table = content2Table(doc_table)
+
+        if reset_table:
+            # 重置表格内的所有数据
+            doc_table = clean_table_people(doc_table)
 
         # 修改表格内容, 根据多个repo的pr数据更新
         for pr_data_ in pr_data_list:
@@ -181,4 +187,26 @@ def replacement_pr_url(tracker_issues_data: TrackerIssuesData) -> str:
         # 替换原数据表格
         issue_content = replace_table(issue_content, start_str, end_str, doc_md)
 
+    return issue_content
+
+
+def init_issue_table(tracker_issues_data: TrackerIssuesData) -> str:
+    """初始化表格"""
+
+    # issue内容
+    issue_content = tracker_issues_data.issue_content
+
+    for start_str, end_str in analysis_table_generator(issue_content):
+        # 拆分markdown表格
+        doc_table = analysis_table_content(issue_content, start_str, end_str)
+        # 为当前表格单独解析 repo 地址
+        doc_table, _ = analysis_repo(doc_table, "/")  # 这里不会用到repo地址
+        # 解析表格
+        doc_table = content2Table(doc_table)
+        # 重置表格内的所有数据
+        doc_table = clean_table_people(doc_table)
+        # 转换ast到md
+        doc_md = to_markdown(doc_table)
+        # 替换原数据表格
+        issue_content = replace_table(issue_content, start_str, end_str, doc_md)
     return issue_content

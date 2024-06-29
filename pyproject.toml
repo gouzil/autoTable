@@ -51,6 +51,7 @@ select = [
     "E",   # pycodestyle
     "W",   # pycodestyle
     "YTT", # flake8-2020
+    "T10", # flake8-debugger
 ]
 
 [tool.ruff.lint.isort]
