@@ -4,6 +4,7 @@ from mistletoe.block_token import Table
 
 from autotable.processor.analysis import (
     analysis_enter,
+    analysis_pr_search_content,
     analysis_pull_start_time,
     analysis_repo,
     analysis_review,
@@ -20,6 +21,12 @@ def test_analysis_title():
     "测试解析任务标题正则"
     title = r'<!--title_name="\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"-->'
     assert analysis_title(title) == r"\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"
+
+
+def test_pr_search_content():
+    "解析 pr 搜索条件"
+    search_content = r'<!--pr_search_content="/\[Typing\]/"--> '
+    assert analysis_pr_search_content(search_content) == r"/\[Typing\]/"
 
 
 def test_analysis_pull_start_time():

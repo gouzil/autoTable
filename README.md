@@ -137,6 +137,16 @@ autotable doctor
 <!--bot_next="A-1"-->
 ```
 
+### 追加自定义 PR 搜索条件
+
+* 允许用户在原有的搜索条件上追加自定义搜索条件
+```md
+<!--pr_search_content="/\[Typing\]/"-->
+
+原有搜索条件为: is:pr repo:gouzil/autoTable created:>=2024-06-10
+
+追加后搜索条件为: is:pr repo:gouzil/autoTable created:>=2024-06-10 /\[Typing\]/
+```
 
 ## 不兼容提示
 

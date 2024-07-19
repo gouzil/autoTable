@@ -68,6 +68,21 @@ def analysis_enter(content: str) -> str:
     return content[: content.find(enter_end)]
 
 
+def analysis_pr_search_content(content: str) -> str:
+    """
+    解析搜索内容, 解析出来的内容可以用于搜索
+
+    <!--pr_search_content=""-->
+    """
+    search_start = '<!--pr_search_content="'
+    search_end = '"-->'
+    if search_start not in content:
+        return ""
+
+    content = content[content.find(search_start) + len(search_start) :]
+    return content[: content.find(search_end)]
+
+
 def analysis_table_more_people(content: str) -> list[str]:
     """
     分割人或者pr号
