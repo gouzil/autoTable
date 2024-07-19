@@ -13,28 +13,30 @@ from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 from autotable.utils.fetcher import Fetcher
 
 
-def get_pr_list(start_time: datetime, title_re: str, repo: str = "") -> list[PullRequestData]:
+def get_pr_list(start_time: datetime, title_re: str, search_content: str, repo: str = "") -> list[PullRequestData]:
     """
     筛选出符合条件的pull request
     """
     with _temp_set_owner_repo(repo):
-        res = asyncio.run(_request_pull_list_data(start_time, title_re))
+        res = asyncio.run(_request_pull_list_data(start_time, title_re, search_content))
 
     logger.debug(f"pr list:{res[::-1]}")
     # 逆序 pr 号小的在前
     return res[::-1]
 
 
-async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[PullRequestData]:
+async def _request_pull_list_data(start_time: datetime, title_re: str, search_content: str) -> list[PullRequestData]:
     """
     异步获取pull request列表, 并筛选出符合条件的pull request
     """
     res: list[PullRequestData] = []
     sem = asyncio.Semaphore(10)  # 限制并发数
+    # Note: search_content 前面有一个空格, 用于分割 created 的内容
+    q = f"is:pr repo:{Fetcher.get_owner_repo()} created:>=" + start_time.strftime("%Y-%m-%d") + f" {search_content}"
     search_res = (
         Fetcher.get_github()
         .rest.search.issues_and_pull_requests(
-            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>=" + start_time.strftime("%Y-%m-%d"),
+            q=q,
             sort="created",
             order="desc",
             per_page=100,
@@ -46,7 +48,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     search_res_items: list[IssueSearchResultItem] = search_res.items
     pr_tasks = []
     for page in range(2, math.ceil(search_res.total_count / 100) + 1):
-        pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, start_time, sem)))
+        pr_tasks.append(asyncio.create_task(_next_page_search_pr(page, q, sem)))
 
     for pr_results in await asyncio.gather(*pr_tasks):
         search_res_items.extend(pr_results)
@@ -90,10 +92,10 @@ async def _request_pull_list_data(start_time: datetime, title_re: str) -> list[P
     return res
 
 
-async def _next_page_search_pr(page: int, start_time: datetime, sem) -> list[IssueSearchResultItem]:
+async def _next_page_search_pr(page: int, q: str, sem) -> list[IssueSearchResultItem]:
     async with sem:
         search_res = await Fetcher.get_github().rest.search.async_issues_and_pull_requests(
-            q=f"is:pr repo:{Fetcher.get_owner_repo()} created:>=" + start_time.strftime("%Y-%m-%d"),
+            q=q,
             sort="created",
             order="desc",
             page=page,
