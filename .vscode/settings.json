@@ -1,8 +1,0 @@
-{
-    "python.languageServer": "Pylance",
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.inlayHints.functionReturnTypes": true,
-    "python.analysis.inlayHints.variableTypes": true,
-    "editor.formatOnType": true,
-    "editor.formatOnSave": true,
-}
