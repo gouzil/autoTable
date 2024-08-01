@@ -15,8 +15,7 @@ from autotable.storage_model.tracker_issues_data import IssuesCommentData
 def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], enter_re: str) -> Table:
     for table_row in table.children:
         if isinstance(table_row.children[0].children[0], Strikethrough):
-            assert isinstance(table_row.children[0].children[0].children[0].content[0], str)
-            index: str = table_row.children[0].children[0].children[0].content
+            continue
         else:
             assert isinstance(table_row.children[0].children[0], RawText)
             assert isinstance(table_row.children[0].children[0].content, str)
@@ -41,7 +40,8 @@ def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], en
 
             # 更新序号
             # 当前序号
-            status: StatusType = StatusType(table_row.children[0].children[0].content[0])
+            status: StatusType = StatusType(index[0])
+
             if status < StatusType.CLAIMED:
                 # 设置序号状态
                 table_row.children[0].children[0].content = f"{StatusType.CLAIMED.value}{index[1:]}"
