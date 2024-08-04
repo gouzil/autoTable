@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autotable.processor.analysis import content2Table
+from autotable.processor.analysis import content2table
 from autotable.processor.file import to_markdown
 from autotable.processor.github_prs import update_pr_table
 from autotable.storage_model.pull_data import PullRequestData, PullReviewData
@@ -31,7 +31,7 @@ def test_update_pr_table():
     pr5 = PullRequestData(5, "[Cleanup][6] fix test", repo_fall_name, "gouzil", "open", False, review2)
     pr6 = PullRequestData(6, "[Cleanup][7] fix test", repo_fall_name, "gouzil", "closed", True, review1)
     prs = [pr1, pr2, pr3, pr3, pr4, pr5, pr6]
-    res_table_content = to_markdown(update_pr_table(content2Table(doc_table_content), title_re, prs))
+    res_table_content = to_markdown(update_pr_table(content2table(doc_table_content), title_re, prs))
 
     res1 = """| 序号     | 所在文件                  | 优先级    | 单测覆盖率 |   认领人    | PR                                             |
 | ------ | --------------------- | ------ | :---: | :------: | ---------------------------------------------- |

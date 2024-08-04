@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autotable.processor.analysis import content2Table
+from autotable.processor.analysis import content2table
 from autotable.processor.file import to_markdown
 from autotable.processor.github_issue import update_issue_table
 from autotable.storage_model.tracker_issues_data import IssuesCommentData
@@ -24,7 +24,7 @@ def test_update_issue_table():
     issue_comment_data2 = IssuesCommentData(2, "报名: 7", "url", "user")
     issue_comment_data_list = [issue_comment_data1, issue_comment_data2]
     res_table_content = to_markdown(
-        update_issue_table(content2Table(doc_table_content), issue_comment_data_list, enter_re)
+        update_issue_table(content2table(doc_table_content), issue_comment_data_list, enter_re)
     )
     res = """| 序号     | 所在文件                  | 优先级    | 单测覆盖率 |           认领人            | PR  |
 | ------ | --------------------- | ------ | :---: | :----------------------: | --- |
