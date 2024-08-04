@@ -12,7 +12,7 @@ from autotable.processor.analysis import (
     analysis_table_content,
     analysis_table_generator,
     analysis_title,
-    content2Table,
+    content2table,
 )
 from autotable.processor.file import replace_table, save_file, to_markdown
 from autotable.processor.github_issue import update_issue_table
@@ -34,7 +34,7 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
         # 这里的repo地址不会被使用, 但是需要解析并删除
         doc_table, _ = analysis_repo(doc_table, "default/repo")
         # 解析表格
-        doc_table = content2Table(doc_table)
+        doc_table = content2table(doc_table)
         # 更新统计数据
         update_stats_data(doc_table, False)
 
@@ -42,7 +42,7 @@ def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:
     # 解析数据统计表格
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
-    doc_stats_table = content2Table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
+    doc_stats_table = content2table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
     stats_table = update_stats_table(doc_stats_table)
     stats_md = to_markdown(stats_table)
     issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
@@ -102,7 +102,7 @@ def update_content(
                     pr_data_list.append(pull_request_list)
 
         # 解析表格
-        doc_table = content2Table(doc_table)
+        doc_table = content2table(doc_table)
 
         if reset_table:
             # 重置表格内的所有数据
@@ -135,7 +135,7 @@ def update_content(
     stats_start_str = "<!--stats start bot-->"
     stats_end_str = "<!--stats end bot-->"
     if stats_end_str in issue_content:
-        doc_stats_table = content2Table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
+        doc_stats_table = content2table(analysis_table_content(issue_content, stats_start_str, stats_end_str))
         stats_table = update_stats_table(doc_stats_table)
         stats_md = to_markdown(stats_table)
         issue_content = replace_table(issue_content, stats_start_str, stats_end_str, stats_md)
@@ -176,7 +176,7 @@ def replacement_pr_url(tracker_issues_data: TrackerIssuesData) -> str:
         doc_table, repo_list_ = analysis_repo(doc_table, tracker_issues_data.owner_repo)
 
         # 解析表格
-        doc_table = content2Table(doc_table)
+        doc_table = content2table(doc_table)
 
         doc_table = migrate_pr_url_02to03(doc_table, tracker_issues_data.owner_repo)
 
@@ -205,7 +205,7 @@ def init_issue_table(tracker_issues_data: TrackerIssuesData) -> str:
         # 为当前表格单独解析 repo 地址
         doc_table, _ = analysis_repo(doc_table, "/")  # 这里不会用到repo地址
         # 解析表格
-        doc_table = content2Table(doc_table)
+        doc_table = content2table(doc_table)
         # 重置表格内的所有数据
         doc_table = clean_table_people(doc_table)
         # 转换ast到md

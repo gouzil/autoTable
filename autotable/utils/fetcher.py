@@ -4,6 +4,8 @@ from githubkit import GitHub, TokenAuthStrategy, UnauthAuthStrategy
 from githubkit.retry import RETRY_RATE_LIMIT, RETRY_SERVER_ERROR, RetryChainDecision
 from githubkit.versions.latest.models import Issue
 
+OWNER_REPO_SPLIT = 2
+
 
 class Fetcher:
     gh: GitHub | None
@@ -53,7 +55,7 @@ class Fetcher:
     @classmethod
     def set_owner_repo(cls, owner_repo: str) -> None:
         res = owner_repo.split("/")
-        assert len(res) == 2
+        assert len(res) == OWNER_REPO_SPLIT
         cls.owner = res[0]
         cls.repo = res[1]
         cls.check_owner_repo()

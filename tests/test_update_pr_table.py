@@ -57,4 +57,4 @@ def test_update_pr_table():
 | ~~🔵8~~ | ~~***/all_to_all.py~~ | ~~p1~~ |       |          |                                                |
 """  # noqa: E501
 
-    assert res1 == res_table_content or res2 == res_table_content
+    assert res_table_content in (res1, res2)

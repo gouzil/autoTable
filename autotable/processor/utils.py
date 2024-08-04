@@ -13,7 +13,7 @@ def update_table_people(status: StatusType, user_name: str, table_row: str) -> s
     # 第一位是@位, 第二位是状态位
     people_names: list[TablePeople] = [TablePeople(status, user_name)]
     people_names.extend([TablePeople(StatusType(x[0]), x[2:]) for x in analysis_table_more_people(table_row)])
-    people_names = TablePeople_list_repeat(people_names)
+    people_names = table_people_list_repeat(people_names)
     table_people_names: str = ""
     if len(people_names) == 1:
         table_people_names = f"{people_names[0].status.value}@{people_names[0].github_id}"
@@ -27,9 +27,9 @@ def update_table_people(status: StatusType, user_name: str, table_row: str) -> s
 
 # TODO: 考虑移动到 TablePeople 类中
 # TablePeople 去重, 这里会调整状态
-def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePeople]:
+def table_people_list_repeat(table_people_list: list[TablePeople]) -> list[TablePeople]:
     res: list[TablePeople] = []
-    for people in TablePeople_list:
+    for people in table_people_list:
         write = True
         for res_index, res_data in enumerate(res):
             if people.github_id == res_data.github_id and people.status == res_data.status:
@@ -50,6 +50,7 @@ def TablePeople_list_repeat(TablePeople_list: list[TablePeople]) -> list[TablePe
 
 
 def clean_table_people(table: Table) -> Table:
+    assert table.children is not None
     for table_row in table.children:
         # 跳过已经删除的行
         if isinstance(table_row.children[0].children[0], Strikethrough):

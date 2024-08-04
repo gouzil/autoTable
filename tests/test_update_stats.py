@@ -26,10 +26,10 @@ def test_update_stats_data():
     TableStatistics.all_merge = {}
 
     update_stats_data(content2Table(doc_table_content))
-    assert TableStatistics.all_merge["gouzil"] == 2
+    assert TableStatistics.all_merge["gouzil"] == 2  # noqa: PLR2004
     assert TableStatistics.status[StatusType.CLAIMED] == 0
     assert TableStatistics.status[StatusType.NEXT_STAGE] == 1
-    assert TableStatistics.status[StatusType.REPAIRING] == 3
+    assert TableStatistics.status[StatusType.REPAIRING] == 3  # noqa: PLR2004
     assert TableStatistics.status[StatusType.PENDING_MERGE] == 1
 
     assert update_stats_people() == "> 排名不分先后 @gouzil(2) \n"

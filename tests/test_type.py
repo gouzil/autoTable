@@ -24,7 +24,7 @@ def test_autotable_type_compare():
     assert StatusType.REPAIRING > StatusType.CLAIMED
 
 
-def test_PrType():
+def test_pr_type():
     # 🚧
     assert PrType.OPEN.match_pr_table() == StatusType.REPAIRING
     # ✅
