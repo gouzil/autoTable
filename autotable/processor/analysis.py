@@ -13,7 +13,7 @@ def analysis_table_content(content: str, start_str: str, end_str: str) -> str:
     return content[content.find(start_str) + len(start_str) : content.find(end_str)]
 
 
-def content2Table(content: str) -> Table:
+def content2table(content: str) -> Table:
     """将 markdown 表格转换为 Table 对象"""
     doc = Document(content.split("\n"))
     assert isinstance(doc.children[0], Table)

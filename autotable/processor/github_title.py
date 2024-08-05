@@ -3,7 +3,7 @@ from __future__ import annotations
 from autotable.utils import strtool
 
 
-class titleBase:
+class TitleBase:
     def __init__(self, title_content: str) -> None:
         # clean and forma title
         title_content = strtool.clean_title(title_content)
@@ -25,7 +25,7 @@ class titleBase:
         )
 
     # 模式分发器
-    def distribution_parser(self) -> titleBase:
+    def distribution_parser(self) -> TitleBase:
         match self.title_content:
             # [No.1, 2-3]
             # [No.1、2-3]
@@ -34,24 +34,24 @@ class titleBase:
             case x if (
                 ("、" in x or "," in x or "，" in x) and "-" in x  # noqa: RUF001
             ) and not self.multi_table_mode:
-                return mixTitle(x)
+                return MixTitle(x)
             # [No.1]
             case x if x.strip().isdigit():
-                return singleTitle(x)
+                return SingleTitle(x)
             # [No.1-2]
             case x if ("-" in x) and not self.multi_table_mode:
-                return multipleTitle(x)
+                return MultipleTitle(x)
             # [No.1、2]
             case x if "、" in x:
-                return multipleSingleTitle(x, "、")
+                return MultipleSingleTitle(x, "、")
             # [No.1, 2]
             case x if "," in x:
-                return multipleSingleTitle(x, ",")
+                return MultipleSingleTitle(x, ",")
             # [No.1，2]  # noqa: RUF003
             case x if "，" in x:  # noqa: RUF001
-                return multipleSingleTitle(x, "，")  # noqa: RUF001
+                return MultipleSingleTitle(x, "，")  # noqa: RUF001
             case x if self.multi_table_mode:
-                return singleTitle(x)
+                return SingleTitle(x)
             case _:
                 raise RuntimeError(f"Title {self.title_content} is not supported")
 
@@ -61,7 +61,7 @@ class titleBase:
 
 
 # 连续标题
-class multipleTitle(titleBase):
+class MultipleTitle(TitleBase):
     def __init__(self, title_content: str) -> None:
         super().__init__(title_content)
 
@@ -73,7 +73,7 @@ class multipleTitle(titleBase):
 
 
 # 单标题
-class singleTitle(titleBase):
+class SingleTitle(TitleBase):
     def __init__(self, title_content: str) -> None:
         super().__init__(title_content)
 
@@ -85,7 +85,7 @@ class singleTitle(titleBase):
 
 
 # 多个单标题
-class multipleSingleTitle(titleBase):
+class MultipleSingleTitle(TitleBase):
     def __init__(self, title_content: str, separator: str) -> None:
         super().__init__(title_content)
         self.separator = separator
@@ -94,13 +94,12 @@ class multipleSingleTitle(titleBase):
         res: list[str] = []
         # 切片
         for i in self.title_content.split(self.separator):
-            i = i.strip()
-            res.append(i)
+            res.append(i.strip())
         return res
 
 
 # 混合标题
-class mixTitle(titleBase):
+class MixTitle(TitleBase):
     def __init__(self, title_content: str) -> None:
         super().__init__(title_content)
 
@@ -114,7 +113,6 @@ class mixTitle(titleBase):
             raise NotImplementedError("Title {self.title_content} is not supported")
         res: list[str] = []
         for i in self.title_content.split(separator):
-            i = i.strip()
-            res.extend(x for x in titleBase(i).distribution_parser().mate())
+            res.extend(x for x in TitleBase(i.strip()).distribution_parser().mate())
 
         return res

@@ -10,7 +10,7 @@ from autotable.autotable_type.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
 from autotable.constant import global_error_prs, global_pr_title_index_cache
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
-from autotable.processor.github_title import titleBase
+from autotable.processor.github_title import TitleBase
 from autotable.processor.utils import update_table_people
 from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 
@@ -31,6 +31,7 @@ def update_pr_table(table: Table, title_re: str, prs: list[PullRequestData]) -> 
     # 记录已经关闭了的号码
     close_prs: set[PullRequestData] = set()
 
+    assert table.children is not None
     for table_row in table.children:
         # 跳过已经删除的行
         if isinstance(table_row.children[0].children[0], Strikethrough):
@@ -69,7 +70,7 @@ def update_pr_table(table: Table, title_re: str, prs: list[PullRequestData]) -> 
 
                 # 防止一些不是序号的标题
                 try:
-                    pr_index_list: list[str] = titleBase(pr_indexs_text).distribution_parser().mate()
+                    pr_index_list: list[str] = TitleBase(pr_indexs_text).distribution_parser().mate()
                 except RuntimeError:
                     if pr not in global_error_prs.setdefault(pr.base_repo_full_name, set()):
                         global_error_prs[pr.base_repo_full_name].add(pr)
@@ -137,7 +138,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullReviewData], table_co
         if review_indexs_str is None:
             continue
         assert isinstance(review_indexs_str, str)
-        review_indexs: list[str] = [str(x) for x in titleBase(review_indexs_str).distribution_parser().mate()]
+        review_indexs: list[str] = [str(x) for x in TitleBase(review_indexs_str).distribution_parser().mate()]
         # 如果表格编号在 review 里则标记🟡
         if table_content[1:] in review_indexs:
             # 转为下一步确认

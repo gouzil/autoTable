@@ -7,7 +7,7 @@ from mistletoe.block_token import Table
 from mistletoe.span_token import RawText, Strikethrough
 
 from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.github_title import titleBase
+from autotable.processor.github_title import TitleBase
 from autotable.processor.utils import update_table_people
 from autotable.storage_model.tracker_issues_data import IssuesCommentData
 
@@ -34,7 +34,7 @@ def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], en
 
             # 如果标题不匹配跳过
             enter_indexs_text = enter_indexs.group("task_id")
-            enter_indexs_list: list[str] = titleBase(enter_indexs_text).distribution_parser().mate()
+            enter_indexs_list: list[str] = TitleBase(enter_indexs_text).distribution_parser().mate()
             if index[1:] not in enter_indexs_list:
                 continue
 

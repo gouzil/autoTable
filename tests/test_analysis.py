@@ -12,7 +12,7 @@ from autotable.processor.analysis import (
     analysis_table_generator,
     analysis_table_more_people,
     analysis_title,
-    content2Table,
+    content2table,
 )
 from autotable.processor.file import replace_table, to_markdown
 
@@ -47,7 +47,7 @@ def test_analysis_table_content():
 
     issues_content = f"{start_str}\ntable\n{end_str}"
 
-    res = content2Table(analysis_table_content(f"{start_str}\n{table}{end_str}", start_str, end_str))
+    res = content2table(analysis_table_content(f"{start_str}\n{table}{end_str}", start_str, end_str))
     assert isinstance(res, Table)
     assert to_markdown(res) == table
     assert replace_table(issues_content, start_str, end_str, table) == f"{start_str}\n{table}{end_str}"
