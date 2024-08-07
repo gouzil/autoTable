@@ -57,6 +57,7 @@ select = [
     "RUF",   # ruff
     "N",     # pep8-naming
     "PL",    # Pylint
+    "PTH",   # flake8-use-pathlib
 ]
 
 ignore = ["PLR0911", "PLR0912"]
