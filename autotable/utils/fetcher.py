@@ -64,7 +64,7 @@ class Fetcher:
     def get_owner_repo(cls) -> str:
         assert cls.owner is not None
         assert cls.repo is not None
-        return cls.owner + "/" + cls.repo
+        return f"{cls.owner}/{cls.repo}"
 
     @classmethod
     def get_issue(cls, issues_id: int) -> Issue:

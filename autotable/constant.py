@@ -15,3 +15,4 @@ CONSOLE_ERROR = "✗"
 _REPO_FULL_NAME = str
 global_error_prs: dict[_REPO_FULL_NAME, set[PullRequestData]] = {}
 global_pr_title_index_cache: dict[_REPO_FULL_NAME, dict[int, list[str]]] = {}
+global_request_pull_list_cache: dict[_REPO_FULL_NAME, list[PullRequestData]] = {}

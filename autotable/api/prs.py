@@ -9,6 +9,7 @@ from datetime import datetime
 from githubkit.versions.latest.models import IssueSearchResultItem
 from loguru import logger
 
+from autotable.constant import global_request_pull_list_cache
 from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 from autotable.utils.fetcher import Fetcher
 
@@ -18,7 +19,10 @@ def get_pr_list(start_time: datetime, title_re: str, search_content: str, repo: 
     筛选出符合条件的pull request
     """
     with _temp_set_owner_repo(repo):
+        if global_request_pull_list_cache.get(Fetcher.get_owner_repo()) is not None:
+            return global_request_pull_list_cache[Fetcher.get_owner_repo()]
         res = asyncio.run(_request_pull_list_data(start_time, title_re, search_content))
+        global_request_pull_list_cache[Fetcher.get_owner_repo()] = res
 
     logger.debug(f"pr list:{res[::-1]}")
     # 逆序 pr 号小的在前
