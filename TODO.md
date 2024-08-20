@@ -1,9 +1,5 @@
 autotable:
- - [x] 支持其他仓库 pr 搜索
  - [ ] 支持自定义 `StatusType` 图标
- - [ ] 支持初始化表格时自动填充 `StatusType` 为 `StatusType.PENDING`
- - [ ] 支持初始化看板信息
- - [ ] 支持自定义pr搜索条件, 应该只能做到特定的开始时间之类的删选
  - [ ] doctor 支持检查在线 issue 状态或者本地 md
  - [ ] 添加更多的测试用例
  - [ ] 支持根据log大小自动清理备份文件
