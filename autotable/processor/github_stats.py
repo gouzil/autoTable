@@ -22,6 +22,8 @@ def update_stats_data(doc_table: Table, update_people: bool = True):
         TableStatistics.status[stats] += 1
 
         if stats == StatusType.COMPLETED and update_people:
+            if len(table_row.children[-2].children) == 0:
+                continue
             people_names: list[TablePeople] = [
                 TablePeople(StatusType(x[0]), x[2:])
                 for x in analysis_table_more_people(table_row.children[-2].children[0].content)
@@ -38,19 +40,25 @@ def update_stats_data(doc_table: Table, update_people: bool = True):
 def update_stats_table(stats_table: Table) -> Table:
     status_type_list: list[str] = [x.value for x in StatusType]
     status_type_list.append("🏁")
+    status_type_list.append("📊")
     # 统计表中有哪些是需要统计的
     for index, stats_index in enumerate(stats_table.header.children):
         status = stats_index.children[0].content[0]
         # 排除没有状态位的
         if status not in status_type_list:
             continue
-        if status == "🏁":
-            sum_total: float = (
-                TableStatistics.status[StatusType.COMPLETED] / sum(TableStatistics.status.values())
-            ) * 100
-            stats_table.children[0].children[index].children[0].content = f"{sum_total:.1f}%"
-            continue
-        stats_table.children[0].children[index].children[0].content = str(TableStatistics.status[StatusType(status)])
+        match status:
+            case "🏁":
+                sum_total: float = (
+                    TableStatistics.status[StatusType.COMPLETED] / sum(TableStatistics.status.values())
+                ) * 100
+                stats_table.children[0].children[index].children[0].content = f"{sum_total:.1f}%"
+            case "📊":
+                stats_table.children[0].children[index].children[0].content = str(sum(TableStatistics.status.values()))
+            case _:
+                stats_table.children[0].children[index].children[0].content = str(
+                    TableStatistics.status[StatusType(status)]
+                )
 
     return stats_table
 

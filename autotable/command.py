@@ -3,7 +3,11 @@ from __future__ import annotations
 import time
 from datetime import datetime
 
+from loguru import logger
+from mistletoe.span_token import Strikethrough
+
 from autotable.api.prs import get_pr_list
+from autotable.constant import global_table_index_set
 from autotable.processor.analysis import (
     analysis_enter,
     analysis_pr_search_content,
@@ -206,6 +210,8 @@ def init_issue_table(tracker_issues_data: TrackerIssuesData) -> str:
         doc_table, _ = analysis_repo(doc_table, "/")  # 这里不会用到repo地址
         # 解析表格
         doc_table = content2table(doc_table)
+        # 检查序号是否重复
+        check_table_index_repeat(doc_table)
         # 重置表格内的所有数据
         doc_table = clean_table_people(doc_table)
         # 转换ast到md
@@ -213,3 +219,21 @@ def init_issue_table(tracker_issues_data: TrackerIssuesData) -> str:
         # 替换原数据表格
         issue_content = replace_table(issue_content, start_str, end_str, doc_md)
     return issue_content
+
+
+def check_table_index_repeat(doc_table):
+    """
+    检查序号是否重复
+    """
+    for raw in doc_table.children:
+        if isinstance(raw.children[0].children[0], Strikethrough):
+            if raw.children[0].children[0].children[0].content[1:] in global_table_index_set:
+                logger.warning(f"table index repeat: {raw.children[0].children[0].children[0].content[1:]}")
+            else:
+                global_table_index_set.add(raw.children[0].children[0].children[0].content[1:])
+            continue
+
+        if raw.children[0].children[0].content[1:] in global_table_index_set:
+            logger.warning(f"table index repeat: {raw.children[0].children[0].content[1:]}")
+        else:
+            global_table_index_set.add(raw.children[0].children[0].content[1:])
