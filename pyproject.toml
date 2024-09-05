@@ -1,6 +1,6 @@
 [project]
 name = "autoTable"
-version = "0.3.0beta"
+version = "0.3.0"
 description = "update tracking issue table automatically"
 authors = [{ name = "gouzil", email = "530971494@qq.com" }]
 dependencies = [
