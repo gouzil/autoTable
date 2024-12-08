@@ -12,22 +12,22 @@ from autotable.processor.utils import update_table_people
 from autotable.storage_model.tracker_issues_data import IssuesCommentData
 
 
-def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], enter_re: str) -> Table:
+def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], enter_re: re.Pattern) -> Table:
     for table_row in table.children:
         if isinstance(table_row.children[0].children[0], Strikethrough):
             continue
-        else:
-            assert isinstance(table_row.children[0].children[0], RawText)
-            assert isinstance(table_row.children[0].children[0].content, str)
-            assert not table_row.children[0].children[0].content.startswith("~")
-            index: str = table_row.children[0].children[0].content
+
+        assert isinstance(table_row.children[0].children[0], RawText)
+        assert isinstance(table_row.children[0].children[0].content, str)
+        assert not table_row.children[0].children[0].content.startswith("~")
+        index: str = table_row.children[0].children[0].content
 
         for issue in issue_comments:
-            if re.search(enter_re, issue.body) is None:
+            if enter_re.search(issue.body) is None:
                 logger.debug(f"skip {issue.url}")
                 continue
 
-            enter_indexs = re.match(enter_re, issue.body)
+            enter_indexs = enter_re.match(issue.body)
             if enter_indexs is None:
                 logger.debug(f"Matching failed skip {issue.url}")
                 continue

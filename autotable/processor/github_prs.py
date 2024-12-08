@@ -27,7 +27,7 @@ table.children:
 """
 
 
-def update_pr_table(table: Table, title_re: str, prs: list[PullRequestData]) -> Table:
+def update_pr_table(table: Table, title_re: re.Pattern, prs: list[PullRequestData]) -> Table:
     # 记录已经关闭了的号码
     close_prs: set[PullRequestData] = set()
 
@@ -56,9 +56,9 @@ def update_pr_table(table: Table, title_re: str, prs: list[PullRequestData]) -> 
                 or pr.number not in global_pr_title_index_cache[pr.base_repo_full_name]
             ):
                 # NOTE: 直接使用 match 会与 search 的不一致
-                pr_title = re.search(title_re, pr.title)
+                pr_title = title_re.search(pr.title)
                 assert pr_title is not None
-                pr_indexs_re = re.match(title_re, pr_title.group())
+                pr_indexs_re = title_re.match(pr_title.group())
 
                 if pr_indexs_re is None:
                     if pr not in global_error_prs.setdefault(pr.base_repo_full_name, set()):

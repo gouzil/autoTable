@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 from datetime import datetime
 
@@ -68,9 +69,9 @@ def update_content(
     # issue内容
     issue_content = tracker_issues_data.issue_content
     # 解析任务开头标题 (这是一个正则表达式)
-    title_re = analysis_title(issue_content)
+    title_re = re.compile(analysis_title(issue_content))
     # 解析报名正则
-    enter_re = analysis_enter(issue_content)
+    enter_re = re.compile(analysis_enter(issue_content))
     # 解析搜索内容
     search_content = analysis_pr_search_content(issue_content)
     # 解析pr开始搜索时间
