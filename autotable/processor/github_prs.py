@@ -127,8 +127,7 @@ def pr_match_status(pr_state: PrType, pr_reviews: list[PullReviewData], table_co
     # pr_state_ > res_type
     # 🚧 > 🔵
     # 🚧 > 🙋
-    if pr_state_ > res_type:
-        res_type = pr_state_
+    res_type = max(pr_state_, res_type)
 
     # 截取reviews中的单独设置
     pr_reviews_count = 0  # 如果有review, 且没有标记🟡
