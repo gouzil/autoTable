@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from autotable.processor.analysis import content2table
 from autotable.processor.file import to_markdown
 from autotable.processor.github_prs import update_pr_table
@@ -8,7 +10,7 @@ from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 
 def test_update_pr_table():
     repo_fall_name = "gouzil/autotable"
-    title_re = r"\[Cleanup\]\[(?P<task_id>[\S\s]+)\]"
+    title_re = re.compile(r"\[Cleanup\]\[(?P<task_id>[\S\s]+)\]")
     doc_table_content = f"""| 序号     | 所在文件        | 优先级    | 单测覆盖率 |    认领人    | PR  |
 | ------ | ------------ |  ------ | :---: | :-------------------------------: | --- |
 | 🔵1     | ***/group.py          | p1     |        |                     |   |

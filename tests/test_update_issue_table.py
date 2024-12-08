@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from autotable.processor.analysis import content2table
 from autotable.processor.file import to_markdown
 from autotable.processor.github_issue import update_issue_table
@@ -7,7 +9,7 @@ from autotable.storage_model.tracker_issues_data import IssuesCommentData
 
 
 def test_update_issue_table():
-    enter_re = r"(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)"  # noqa: RUF001
+    enter_re = re.compile(r"(\[|【)报名(\]|】)(:|：)(?P<task_id>[\S\s]+)")  # noqa: RUF001
     doc_table_content = """| 序号     | 所在文件        | 优先级    | 单测覆盖率 |    认领人    | PR  |
 | ------ | ------------ |  ------ | :---: | :-------------------------------: | --- |
 | 🙋1     | ***/group.py          | p1     |        |         🙋@user            |   |

@@ -14,7 +14,9 @@ from autotable.storage_model.pull_data import PullRequestData, PullReviewData
 from autotable.utils.fetcher import Fetcher
 
 
-def get_pr_list(start_time: datetime, title_re: str, search_content: str, repo: str = "") -> list[PullRequestData]:
+def get_pr_list(
+    start_time: datetime, title_re: re.Pattern, search_content: str, repo: str = ""
+) -> list[PullRequestData]:
     """
     筛选出符合条件的pull request
     """
@@ -29,7 +31,9 @@ def get_pr_list(start_time: datetime, title_re: str, search_content: str, repo: 
     return res[::-1]
 
 
-async def _request_pull_list_data(start_time: datetime, title_re: str, search_content: str) -> list[PullRequestData]:
+async def _request_pull_list_data(
+    start_time: datetime, title_re: re.Pattern, search_content: str
+) -> list[PullRequestData]:
     """
     异步获取pull request列表, 并筛选出符合条件的pull request
     """
@@ -61,7 +65,7 @@ async def _request_pull_list_data(start_time: datetime, title_re: str, search_co
     tmp_pr_index_list = []
     for index, pr in enumerate(search_res_items):
         # 如果正则匹配上了就会加入队列
-        if re.search(title_re, pr.title):
+        if title_re.search(pr.title):
             tmp_pr_index_list.append(index)
 
     # 获取评论
