@@ -16,23 +16,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup PDM
-        uses: pdm-project/setup-pdm@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Build package
-        run: |
-          pdm build
 
-      - name: PDM Install
+      - name: Install package
         run: |
-          pdm install
+          uv sync --all-extras --dev
 
-      - name: PDM coverage
+      - name: Run Build
         run: |
-          pdm test
+          uv build
 
-  tests:
+      - name: test coverage
+        run: |
+          uv run pytest ./tests --cov=autotable --cov-context=test --cache-clear
+
+  tests-e2e:
     needs: build
     strategy:
       matrix:
