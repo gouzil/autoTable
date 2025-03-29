@@ -28,11 +28,11 @@ jobs:
         run: |
           uv sync --all-extras --dev
 
-      - name: Run Build
+      - name: Run Build and Install
         run: |
-          uv build
+          uv build && uv install
 
-      - name: test coverage
+      - name: Test coverage
         run: |
           uv run pytest ./tests --cov=autotable --cov-context=test --cache-clear
 
