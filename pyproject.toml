@@ -11,6 +11,8 @@ dependencies = [
     "mistletoe>=1.2.1",
     "pytest>=8.1.1",
     "appdirs>=1.4.4",
+    "tomli>=2.0.2; python_version < '3.11'",
+    "pydantic>=2.10.6",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

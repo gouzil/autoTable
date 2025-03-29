@@ -6,9 +6,12 @@ if TYPE_CHECKING:
     from autotable.storage_model.pull_data import PullRequestData
 
 APPNAME = "autotable"
-APPAUTHOR = "gouzil"
+
 CONSOLE_SUCCESSFUL = "✓"
 CONSOLE_ERROR = "✗"
+CONSOLE_WARNING = "⚠"
+
+CONFIG_FILE_NAME = f"{APPNAME}.toml"
 
 
 # processor/github_prs cache

@@ -12,8 +12,9 @@ from rich.style import Style
 
 from autotable.api.issues import get_issues
 from autotable.command import backup, init_issue_table, replacement_pr_url, update_content, update_stats
-from autotable.constant import CONSOLE_ERROR, CONSOLE_SUCCESSFUL
+from autotable.constant import CONFIG_FILE_NAME, CONSOLE_ERROR, CONSOLE_SUCCESSFUL, CONSOLE_WARNING
 from autotable.processor.file import save_file
+from autotable.settings import init_setting, search_for_settings_file, select_setting
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from autotable.utils.appdirs import data_dir, log_dir
 from autotable.utils.fetcher import Fetcher
@@ -39,14 +40,17 @@ def init_logger(log_level: str):
 
 def init(
     owner_repo: str,
-    token: str,
-    log_level: str = "INFO",
+    issue_id: int,
+    token: str | None,
+    log_level: str | None,
+    config_file: str | None = None,
 ) -> None:
     r"""
     初始化日志、github token、repo等信息
     """
-    init_logger(log_level)
-    Fetcher.set_github(token)
+    setting = init_setting(config_file)
+    init_logger(select_setting(setting, f"{owner_repo}/{issue_id}", "log_level", log_level))
+    Fetcher.set_github(select_setting(setting, f"{owner_repo}/{issue_id}", "token", token))
     Fetcher.set_owner_repo(owner_repo)
 
 
@@ -54,8 +58,8 @@ def init(
 def init_issue(
     owner_repo: str = typer.Argument("", help="仓库地址"),
     token: str = typer.Option("", help="github token"),
-    issue_id: int = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
-    file_path: str = typer.Option(None, "-f", "--file", help="文件路径"),
+    issue_id: int | None = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
+    file_path: str | None = typer.Option(None, "-f", "--file", help="需要初始化的文件路径"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
     """
@@ -92,11 +96,12 @@ def issue_update(
         True, help="重置表格数据, 次模式会删除表格内所有任务状态, 并重新统计. NOTE: 手动修改表格数据将会丢失"
     ),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+    config_file: str | None = typer.Option(None, "-c", "--config", help="配置文件"),
 ):
     """
     更新 issue 内容
     """
-    init(owner_repo, token, log_level)
+    init(owner_repo, issue_id, token, log_level, config_file)
     # 获取issue内容
     tracker_issues_data = get_issues(issue_id)
     new_issue: str = update_content(
@@ -117,11 +122,12 @@ def issue_update_stats(
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
     dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+    config_file: str | None = typer.Option(None, "-c", "--config", help="配置文件"),
 ):
     """
     仅更新 issue 任务统计
     """
-    init(owner_repo, token, log_level)
+    init(owner_repo, issue_id, token, log_level, config_file)
     tracker_issues_data = get_issues(issue_id)
     new_issue: str = update_stats(tracker_issues_data.issue_title, tracker_issues_data.issue_content, dry_run)
     if overwrite_remote and not dry_run:
@@ -135,11 +141,12 @@ def issue_backup(
     issue_id: int = typer.Argument(..., help="issue 编号"),
     token: str = typer.Argument(..., help="github token"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
+    config_file: str | None = typer.Option(None, "-c", "--config", help="配置文件"),
 ):
     """
     备份 issue
     """
-    init(owner_repo, token, log_level)
+    init(owner_repo, issue_id, token, log_level, config_file)
     tracker_issues_data = get_issues(issue_id)
     backup(tracker_issues_data.issue_title, tracker_issues_data.issue_content)
 
@@ -157,7 +164,9 @@ def clean():
 
 
 @app.command()
-def doctor():
+def doctor(
+    config_file: str | None = typer.Option(None, "-c", "--config", help="配置文件"),
+):
     """
     自检查
     """
@@ -172,7 +181,7 @@ def doctor():
             if files.is_file():
                 data_size += files.stat().st_size
         Console().print(
-            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Data dir path: {data_dir()}, size: {data_size/1024/1024:.3f}M"
+            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Data dir path: {data_dir()}, size: {data_size / 1024 / 1024:.3f}M"
         )
     except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Data dir path: {data_dir()}, fail to write to file")
@@ -187,17 +196,35 @@ def doctor():
             if files.is_file():
                 log_size += files.stat().st_size
         Console().print(
-            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Log dir path: {log_dir()}, size: {log_size/1024/1024:.3f}M"
+            rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Log dir path: {log_dir()}, size: {log_size / 1024 / 1024:.3f}M"
         )
     except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Log dir path: {log_dir()}, fail to write to file")
         Console().print(f"Log store error message: {error_msg}")
 
+    # check config file
+    try:
+        setting = init_setting(config_file, enable_log=False)
+        if setting:
+            if config_file:
+                Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Config file: {config_file}")
+            else:
+                if file := search_for_settings_file():
+                    config_file = file.absolute().as_posix()
+                else:
+                    raise FileNotFoundError(f"config file {CONFIG_FILE_NAME} not found")
+                Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Config file: {config_file}")
+        else:
+            Console().print(rf"[yellow]\[{CONSOLE_WARNING}][/yellow] config {CONFIG_FILE_NAME} not found")
+    except Exception as error_msg:
+        Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Config file: {config_file}, fail to load")
+        Console().print(f"Config file error message: {error_msg}")
+
     # check github
     try:
         Fetcher.set_github("")
         Fetcher.set_owner_repo("gouzil/autoTable")
-        Fetcher.get_issue(10).body  # noqa: B018
+        assert Fetcher.get_issue(10).body is not None
         Console().print(rf"[green]\[{CONSOLE_SUCCESSFUL}][/green] Github resources")
     except Exception as error_msg:
         Console().print(rf"[red]\[{CONSOLE_ERROR}][/red] Github resources")
@@ -208,8 +235,8 @@ def doctor():
 def migrate02to03(
     owner_repo: str = typer.Argument(..., help="仓库地址"),
     token: str = typer.Option("", help="github token"),
-    issue_id: int = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
-    file_path: str = typer.Option(None, "-f", "--file", help="文件路径"),
+    issue_id: int | None = typer.Option(None, "-i", "--issue-id", help="issue 编号"),
+    file_path: str | None = typer.Option(None, "-f", "--file", help="文件路径"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
 ):
     """
@@ -237,6 +264,8 @@ def migrate02to03(
         dry_run=True,
     )
 
+
+# TODO: 添加初始化 autotable 的命令
 
 if __name__ == "__main__":  # pragma: no cover
     app()

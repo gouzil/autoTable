@@ -32,7 +32,7 @@ jobs:
         run: |
           uv build
 
-      - name: test coverage
+      - name: Test coverage
         run: |
           uv run pytest ./tests --cov=autotable --cov-context=test --cache-clear
 
