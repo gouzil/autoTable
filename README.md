@@ -32,6 +32,12 @@ autotable issue-backup gouzil/autoTable 18 github_pat_*****
 autotable issue-update gouzil/autoTable 18 github_pat_******
 ```
 
+使用配置文件, 更多配置请查看 [设置](example/setting/README.md)
+```bash
+autotable issue-update gouzil/autoTable 18
+```
+
+
 不更新远程issue, 仅缓存本地issue
 
 ```bash
