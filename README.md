@@ -37,7 +37,6 @@ autotable issue-update gouzil/autoTable 18 github_pat_******
 autotable issue-update gouzil/autoTable 18
 ```
 
-
 不更新远程issue, 仅缓存本地issue
 
 ```bash
