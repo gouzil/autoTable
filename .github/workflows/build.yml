@@ -28,9 +28,9 @@ jobs:
         run: |
           uv sync --all-extras --dev
 
-      - name: Run Build and Install
+      - name: Run Build
         run: |
-          uv build && uv install
+          uv build
 
       - name: Test coverage
         run: |
