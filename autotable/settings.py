@@ -48,7 +48,7 @@ def search_for_settings_file() -> Path | None:
 
 def load_settings_file(settings_file: Path) -> AutoTableSettings:
     """
-    Load settings from a JSON file.
+    Load settings from a TOML file.
     """
     with settings_file.open("r", encoding="utf-8") as f:
         settings_raw = tomllib.loads(f.read())
