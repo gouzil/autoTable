@@ -44,8 +44,10 @@ dependencies = [
     { name = "githubkit" },
     { name = "loguru" },
     { name = "mistletoe" },
+    { name = "pydantic" },
     { name = "pytest" },
     { name = "rich" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "typer" },
 ]
 
@@ -63,8 +65,10 @@ requires-dist = [
     { name = "githubkit", specifier = ">=0.12.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mistletoe", specifier = ">=1.2.1" },
+    { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pytest", specifier = ">=8.1.1" },
     { name = "rich", specifier = ">=13.7.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.2" },
     { name = "typer", specifier = ">=0.10.0" },
 ]
 
