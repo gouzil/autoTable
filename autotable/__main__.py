@@ -89,7 +89,7 @@ def init_issue(
 def issue_update(
     owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
-    token: str = typer.Argument(..., help="github token"),
+    token: str | None = typer.Argument(None, help="github token"),
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
     dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
     reset_table: bool = typer.Option(
@@ -118,7 +118,7 @@ def issue_update(
 def issue_update_stats(
     owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
-    token: str = typer.Argument(..., help="github token"),
+    token: str | None = typer.Argument(None, help="github token"),
     overwrite_remote: bool = typer.Option(True, "-o", "--overwrite-remote", help="写入远程 issue"),
     dry_run: bool = typer.Option(False, help="试运行模式, 此模式将不会写入远程 issue, 但会生成更新后的文件"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
@@ -139,7 +139,7 @@ def issue_update_stats(
 def issue_backup(
     owner_repo: str = typer.Argument(..., help="仓库地址"),
     issue_id: int = typer.Argument(..., help="issue 编号"),
-    token: str = typer.Argument(..., help="github token"),
+    token: str | None = typer.Argument(None, help="github token"),
     log_level: str = typer.Option("INFO", help="日志等级: INFO, DEBUG"),
     config_file: str | None = typer.Option(None, "-c", "--config", help="配置文件"),
 ):
