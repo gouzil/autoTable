@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.analysis import content2table
-from autotable.processor.file import to_markdown
-from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
-from autotable.storage_model.table import TableStatistics
+from autotable.autotable_type import StatusType
+from autotable.processor import content2table, to_markdown, update_stats_data, update_stats_people, update_stats_table
+from autotable.storage_model import TableStatistics
 
 
 def test_update_stats_data():

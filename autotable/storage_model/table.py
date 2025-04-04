@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from autotable.autotable_type.autotable_type import StatusType
+from autotable.autotable_type import StatusType
 
 
 class TablePr:
@@ -24,3 +24,9 @@ class TablePeople:
 class TableStatistics:
     status: ClassVar[dict[StatusType, int]] = {StatusKey: 0 for StatusKey in StatusType}
     all_merge: ClassVar[dict[str, int]] = {}
+
+
+# 重制统计数据
+def reset_stats() -> None:
+    TableStatistics.status = {StatusKey: 0 for StatusKey in StatusType}
+    TableStatistics.all_merge = {}

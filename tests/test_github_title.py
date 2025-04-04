@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autotable.processor.github_title import TitleBase
+from autotable.processor import TitleBase
 
 
 # [No.1]

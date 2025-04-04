@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from autotable.processor.analysis import content2table
-from autotable.processor.file import to_markdown
+from autotable.processor import content2table, to_markdown
 from autotable.utils.migrate import migrate_pr_url_02to03
 
 

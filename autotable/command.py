@@ -7,9 +7,9 @@ from datetime import datetime
 from loguru import logger
 from mistletoe.span_token import Strikethrough
 
-from autotable.api.prs import get_pr_list
+from autotable.api import get_pr_list
 from autotable.constant import global_table_index_set
-from autotable.processor.analysis import (
+from autotable.processor import (
     analysis_enter,
     analysis_pr_search_content,
     analysis_pull_start_time,
@@ -17,15 +17,18 @@ from autotable.processor.analysis import (
     analysis_table_content,
     analysis_table_generator,
     analysis_title,
+    clean_table_people,
     content2table,
+    replace_table,
+    save_file,
+    to_markdown,
+    update_issue_table,
+    update_pr_table,
+    update_stats_data,
+    update_stats_people,
+    update_stats_table,
 )
-from autotable.processor.file import replace_table, save_file, to_markdown
-from autotable.processor.github_issue import update_issue_table
-from autotable.processor.github_prs import update_pr_table
-from autotable.processor.github_stats import update_stats_data, update_stats_people, update_stats_table
-from autotable.processor.utils import clean_table_people
-from autotable.storage_model.pull_data import PullRequestData
-from autotable.storage_model.tracker_issues_data import TrackerIssuesData
+from autotable.storage_model import PullRequestData, TrackerIssuesData
 from autotable.utils.migrate import migrate_pr_url_02to03
 
 

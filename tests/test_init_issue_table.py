@@ -4,7 +4,7 @@ from loguru import logger
 
 from autotable import constant
 from autotable.command import check_table_index_repeat, init_issue_table
-from autotable.processor.analysis import content2table
+from autotable.processor import content2table
 from autotable.storage_model.tracker_issues_data import TrackerIssuesData
 from tests.util import CaptureLogger
 

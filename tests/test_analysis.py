@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from mistletoe.block_token import Table
 
-from autotable.processor.analysis import (
+from autotable.processor import (
     analysis_enter,
     analysis_pr_search_content,
     analysis_pull_start_time,
@@ -13,8 +13,9 @@ from autotable.processor.analysis import (
     analysis_table_more_people,
     analysis_title,
     content2table,
+    replace_table,
+    to_markdown,
 )
-from autotable.processor.file import replace_table, to_markdown
 
 
 def test_analysis_title():

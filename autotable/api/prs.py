@@ -10,7 +10,7 @@ from githubkit.versions.latest.models import IssueSearchResultItem
 from loguru import logger
 
 from autotable.constant import global_request_pull_list_cache
-from autotable.storage_model.pull_data import PullRequestData, PullReviewData
+from autotable.storage_model import PullRequestData, PullReviewData
 from autotable.utils.fetcher import Fetcher
 
 

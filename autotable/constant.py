@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from autotable.storage_model.pull_data import PullRequestData
+    from autotable.storage_model import PullRequestData
 
 APPNAME = "autotable"
 
