@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import time
 from datetime import datetime
+from pathlib import Path
 
 from loguru import logger
 from mistletoe.span_token import Strikethrough
@@ -32,8 +33,12 @@ from autotable.storage_model import PullRequestData, TrackerIssuesData
 from autotable.utils.migrate import migrate_pr_url_02to03
 
 
-def backup(issue_title: str, issue_content: str) -> None:
-    save_file(issue_content, time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md", issue_title)
+def backup(issue_title: str, issue_content: str) -> Path:
+    return save_file(
+        issue_content,
+        time.strftime("%Y-%m-%d-%H-%M-%S") + f"{issue_title}.md",
+        issue_title,
+    )
 
 
 def update_stats(issue_title: str, issue_content: str, dry_run: bool) -> str:

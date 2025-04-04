@@ -11,6 +11,7 @@ from loguru import logger
 
 from autotable.constant import global_request_pull_list_cache
 from autotable.storage_model import PullRequestData, PullReviewData
+from autotable.utils.async_exe import async_run
 from autotable.utils.fetcher import Fetcher
 
 
@@ -23,7 +24,7 @@ def get_pr_list(
     with _temp_set_owner_repo(repo):
         if global_request_pull_list_cache.get(Fetcher.get_owner_repo()) is not None:
             return global_request_pull_list_cache[Fetcher.get_owner_repo()]
-        res = asyncio.run(_request_pull_list_data(start_time, title_re, search_content))
+        res: list[PullRequestData] = async_run(_request_pull_list_data(start_time, title_re, search_content))
         global_request_pull_list_cache[Fetcher.get_owner_repo()] = res
 
     logger.debug(f"pr list:{res[::-1]}")

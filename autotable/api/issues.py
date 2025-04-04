@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
 
 from autotable.storage_model import IssuesCommentData, TrackerIssuesData
+from autotable.utils.async_exe import async_run
 from autotable.utils.fetcher import Fetcher
 
 
@@ -22,7 +22,7 @@ def get_issues(
     assert isinstance(issue.body, str)
     assert isinstance(issue.created_at, datetime)
 
-    issue_comments = asyncio.run(_get_issue_comments(issues_id))
+    issue_comments: list[IssuesCommentData] = async_run(_get_issue_comments(issues_id))
 
     return TrackerIssuesData(
         issue_title=issue.title,
