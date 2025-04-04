@@ -3,7 +3,7 @@ from __future__ import annotations
 from mistletoe.block_token import Table
 from mistletoe.span_token import Strikethrough
 
-from autotable.processor.analysis import analysis_table_more_people
+from autotable.processor import analysis_table_more_people
 
 
 def migrate_pr_url_02to03(doc_table: Table, repo_fall_name: str) -> Table:

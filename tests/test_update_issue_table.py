@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import re
 
-from autotable.processor.analysis import content2table
-from autotable.processor.file import to_markdown
-from autotable.processor.github_issue import update_issue_table
-from autotable.storage_model.tracker_issues_data import IssuesCommentData
+from autotable.processor import content2table, to_markdown, update_issue_table
+from autotable.storage_model import IssuesCommentData
 
 
 def test_update_issue_table():

@@ -6,13 +6,12 @@ from loguru import logger
 from mistletoe.block_token import Table
 from mistletoe.span_token import RawText, Strikethrough
 
-from autotable.autotable_type.autotable_type import StatusType
-from autotable.autotable_type.github_type import PrType, get_pr_type
+from autotable.autotable_type import PrType, StatusType, get_pr_type
 from autotable.constant import global_error_prs, global_pr_title_index_cache
 from autotable.processor.analysis import analysis_review, analysis_table_more_people
 from autotable.processor.github_title import TitleBase
 from autotable.processor.utils import update_table_people
-from autotable.storage_model.pull_data import PullRequestData, PullReviewData
+from autotable.storage_model import PullRequestData, PullReviewData
 
 """
 table.header:

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
-from autotable.autotable_type.autotable_type import StatusType
-from autotable.storage_model.pull_data import PullRequestData
+from autotable.autotable_type import StatusType
+from autotable.storage_model import PullRequestData
 
 
 class PrType(Enum):

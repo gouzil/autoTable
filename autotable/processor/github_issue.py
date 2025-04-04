@@ -9,7 +9,7 @@ from mistletoe.span_token import RawText, Strikethrough
 from autotable.autotable_type.autotable_type import StatusType
 from autotable.processor.github_title import TitleBase
 from autotable.processor.utils import update_table_people
-from autotable.storage_model.tracker_issues_data import IssuesCommentData
+from autotable.storage_model import IssuesCommentData
 
 
 def update_issue_table(table: Table, issue_comments: list[IssuesCommentData], enter_re: re.Pattern) -> Table:

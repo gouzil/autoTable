@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from autotable.autotable_type.autotable_type import StatusType
+from autotable.autotable_type import StatusType
 from autotable.autotable_type.github_type import PrType, get_pr_type
-from autotable.storage_model.pull_data import PullRequestData
+from autotable.storage_model import PullRequestData
 
 
 def test_autotable_type_compare():

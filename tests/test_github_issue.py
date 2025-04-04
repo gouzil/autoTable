@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.github_issue import update_table_people
+from autotable.autotable_type import StatusType
+from autotable.processor import update_table_people
 
 
 def test_update_table_people():

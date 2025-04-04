@@ -10,12 +10,12 @@ from rich.highlighter import NullHighlighter
 from rich.logging import RichHandler
 from rich.style import Style
 
-from autotable.api.issues import get_issues
+from autotable.api import get_issues
 from autotable.command import backup, init_issue_table, replacement_pr_url, update_content, update_stats
 from autotable.constant import CONFIG_FILE_NAME, CONSOLE_ERROR, CONSOLE_SUCCESSFUL, CONSOLE_WARNING
-from autotable.processor.file import save_file
+from autotable.processor import save_file
 from autotable.settings import init_setting, search_for_settings_file, select_setting
-from autotable.storage_model.tracker_issues_data import TrackerIssuesData
+from autotable.storage_model import TrackerIssuesData
 from autotable.utils.appdirs import data_dir, log_dir
 from autotable.utils.fetcher import Fetcher
 

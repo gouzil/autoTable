@@ -3,9 +3,9 @@ from __future__ import annotations
 from mistletoe.block_token import Table
 from mistletoe.span_token import RawText, Strikethrough
 
-from autotable.autotable_type.autotable_type import StatusType
+from autotable.autotable_type import StatusType
 from autotable.processor.analysis import analysis_table_more_people
-from autotable.storage_model.table import TablePeople
+from autotable.storage_model import TablePeople
 
 
 def update_table_people(status: StatusType, user_name: str, table_row: str) -> str:

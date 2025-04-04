@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import re
 
-from autotable.processor.analysis import content2table
-from autotable.processor.file import to_markdown
-from autotable.processor.github_prs import update_pr_table
-from autotable.storage_model.pull_data import PullRequestData, PullReviewData
+from autotable.processor import content2table, to_markdown, update_pr_table
+from autotable.storage_model import PullRequestData, PullReviewData
 
 
 def test_update_pr_table():

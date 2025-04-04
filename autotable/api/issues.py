@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 
-from autotable.storage_model.tracker_issues_data import IssuesCommentData, TrackerIssuesData
+from autotable.storage_model import IssuesCommentData, TrackerIssuesData
 from autotable.utils.fetcher import Fetcher
 
 

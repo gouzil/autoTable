@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from autotable.autotable_type.autotable_type import StatusType
-from autotable.processor.utils import table_people_list_repeat
-from autotable.storage_model.table import TablePeople
+from autotable.autotable_type import StatusType
+from autotable.processor import table_people_list_repeat
+from autotable.storage_model import TablePeople
 
 
 def test_table_people():
