@@ -67,10 +67,6 @@ def update_pr_table(table: Table, title_re: re.Pattern, prs: list[PullRequestDat
 
                 pr_indexs_text = pr_indexs_re.group("task_id")
 
-                # 处理标题中包含额外方括号的情况, 如 [Cleanup][1-10][API] 与 [Cleanup][A-1,A-[2-3]] 不同
-                if "][" in pr_indexs_text:
-                    pr_indexs_text = pr_indexs_text.split("][")[0]
-
                 # 防止一些不是序号的标题
                 try:
                     pr_index_list: list[str] = TitleBase(pr_indexs_text).distribution_parser().mate()
