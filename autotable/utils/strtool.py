@@ -11,7 +11,7 @@ english_character = r',,.!?;:()<>[]""\'\''
 _translate_table = str.maketrans(chinese_character, english_character)
 
 
-pat_title = re.compile(r"(?P<prefix>[a-zA-Z]+)[^\[]*?((?P<no>(\d+))|(\[(?P<no_start>\d+)-(?P<no_end>\d+)\]))")
+pat_title = re.compile(r"(?P<prefix>[a-zA-Z]+)[^\w]*?((\[(?P<no_start>\d+)-(?P<no_end>\d+)\]?)|(?P<no>(\d+)))")
 
 
 def str_translate(input: str) -> str:
